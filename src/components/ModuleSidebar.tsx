@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { 
   BarChart3, 
   Sun, 
@@ -17,7 +16,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "./ui/sidebar";
+} from "../shared/ui/sidebar";
 
 const modules = [
   { id: "load-analysis", title: "Load Analysis", icon: BarChart3 },
