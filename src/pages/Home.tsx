@@ -43,8 +43,8 @@ const Home: React.FC = () => {
           <NavLink to="/evolve" className={navClass}>
             EVOLVE
           </NavLink>
-          <NavLink to="/signin" className="text-gray-600 hover:text-green-600">
-            SIGN IN
+          <NavLink to="/signout" className="text-gray-600 hover:text-green-600">
+            LOG OUT
           </NavLink>
         </div>
 
@@ -133,11 +133,11 @@ const Home: React.FC = () => {
               EVOLVE
             </NavLink>
             <NavLink
-              to="/signin"
+              to="/signout"
               className="block py-3 text-lg font-medium text-gray-600 hover:text-green-600 touch-manipulation"
               onClick={closeMenu}
             >
-              SIGN IN
+              LOG OUT
             </NavLink>
           </div>
         </div>
@@ -180,12 +180,11 @@ const Home: React.FC = () => {
             <span className="font-montserrat font-bold italic text-green-600 text-lg sm:text-xl md:text-2xl lg:text-3xl">
               Infina
             </span>
-            <div className="info-divider mx-2" />
-            <span className="font-montserrat text-black text-sm sm:text-base md:text-lg leading-relaxed max-w-md">
-              Transforms Your Solar Idea Into A Fully‑Engineered,
-              <br className="hidden sm:block" /> Ready‑To‑Deploy System
-            </span>
-            <div className="info-divider mx-2" />
+            <div className="info-divider mx-2 border-l border-gray-300 h-6" />
+            <div className="font-montserrat text-black text-sm sm:text-base md:text-lg leading-relaxed max-w-md">
+              Transforms Your Solar Idea Into A Fully‑Engineered, Ready‑To‑Deploy System
+            </div>
+            <div className="info-divider mx-2 border-l border-gray-300 h-6" />
             <span className="font-montserrat font-bold italic text-green-600 text-lg sm:text-xl md:text-2xl lg:text-3xl">
               Instantly
             </span>

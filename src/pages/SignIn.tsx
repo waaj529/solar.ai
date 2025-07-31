@@ -31,7 +31,7 @@ const SignIn: React.FC = () => {
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
-          <NavLink to="/signin" className="flex items-center gap-2 font-medium">
+          <NavLink to="/" className="flex items-center gap-2 font-medium">
             <div className="bg-green-600 text-white flex size-8 items-center justify-center rounded-md">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
