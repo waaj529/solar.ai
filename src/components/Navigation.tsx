@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../features/auth/services/AuthContext';
 
 interface NavigationProps {
   currentPage?: string;
@@ -7,6 +8,7 @@ interface NavigationProps {
 
 const Navigation: React.FC<NavigationProps> = ({ currentPage }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
   // helper for active nav link classes
   const navClass = ({ isActive }: { isActive: boolean }) =>
@@ -41,9 +43,21 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage }) => {
         <NavLink to="/evolve" className={navClass}>
           EVOLVE
         </NavLink>
-        <NavLink to="/signin" className="text-gray-600 hover:text-green-600">
-          SIGN IN
-        </NavLink>
+        {isAuthenticated ? (
+          <>
+            <span className="text-sm text-green-700 font-semibold">{user?.firstName}</span>
+            <button
+              onClick={logout}
+              className="text-gray-600 hover:text-red-600 transition-colors ml-2"
+            >
+              SIGN OUT
+            </button>
+          </>
+        ) : (
+          <NavLink to="/signin" className="text-gray-600 hover:text-green-600">
+            SIGN IN
+          </NavLink>
+        )}
       </div>
 
       {/* Mobile Navigation Header */}
@@ -138,13 +152,28 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage }) => {
           >
             EVOLVE
           </NavLink>
-          <NavLink
-            to="/signin"
-            className="block py-2 text-lg font-medium text-gray-600 hover:text-green-600"
-            onClick={closeMenu}
-          >
-            SIGN IN
-          </NavLink>
+          {isAuthenticated ? (
+            <>
+              <span className="text-sm text-green-700 font-semibold">{user?.firstName}</span>
+              <button
+                onClick={() => {
+                  closeMenu();
+                  logout();
+                }}
+                className="block py-2 text-lg font-medium text-red-600 hover:text-red-700 text-left"
+              >
+                SIGN OUT
+              </button>
+            </>
+          ) : (
+            <NavLink
+              to="/signin"
+              className="block py-2 text-lg font-medium text-gray-600 hover:text-green-600"
+              onClick={closeMenu}
+            >
+              SIGN IN
+            </NavLink>
+          )}
         </div>
       </div>
     </nav>
