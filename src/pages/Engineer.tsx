@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
 import leftGraphic from '../assets/ENGINEER.png';
 import verticalGraphic from '../assets/Group 1171277870.png';
+import { useAuth } from '../features/auth/services/AuthContext';
 
 /**
  * Engineer page replicates the Engineer marketing page.  It shares the
@@ -37,8 +38,8 @@ const Engineer: React.FC = () => {
         <NavLink to="/evolve" className={navClass}>
           EVOLVE
         </NavLink>
-        <NavLink to="/signin" className="text-gray-600 hover:text-green-600">
-          SIGN IN
+        <NavLink to="/signout" className="text-gray-600 hover:text-green-600">
+          SIGN OUT
         </NavLink>
       </nav>
 
@@ -56,6 +57,10 @@ const Engineer: React.FC = () => {
 
       {/* Search and tabs */}
       <div className="text-center mt-8 px-4 relative z-10 max-w-2xl mx-auto">
+        <h1 className="text-lg md:text-[20px] text-center italic font-semibold font-montserrat">
+          Design A Complete
+          <span className="text-green-600 font-bold italic"> Solar System</span> With One Simple Sentence
+        </h1>
         <div className="mt-6 flex justify-center">
           <div className="relative w-full max-w-2xl">
             <div className="slanted-box px-8 pt-6 pb-3">

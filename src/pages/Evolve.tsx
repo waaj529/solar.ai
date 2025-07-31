@@ -38,8 +38,8 @@ const Evolve: React.FC = () => {
         <NavLink to="/evolve" className={navClass}>
           EVOLVE
         </NavLink>
-        <NavLink to="/signin" className="text-gray-600 hover:text-green-600">
-          SIGN IN
+        <NavLink to="/signout" className="text-gray-600 hover:text-green-600">
+          SIGN OUT
         </NavLink>
       </nav>
 

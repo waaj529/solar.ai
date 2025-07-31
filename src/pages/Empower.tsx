@@ -39,8 +39,8 @@ const Empower: React.FC = () => {
         <NavLink to="/evolve" className={navClass}>
           EVOLVE
         </NavLink>
-        <NavLink to="/signin" className="text-gray-600 hover:text-green-600">
-          SIGN IN
+        <NavLink to="/signout" className="text-gray-600 hover:text-green-600">
+          SIGN OUT
         </NavLink>
       </nav>
 
@@ -58,6 +58,10 @@ const Empower: React.FC = () => {
 
       {/* Search box and tabs */}
       <div className="text-center mt-8 px-4 relative z-10 max-w-2xl mx-auto">
+        <h1 className="text-lg md:text-[20px] text-center italic font-semibold font-montserrat">
+          Design A Complete
+          <span className="text-green-600 font-bold italic"> Solar System</span> With One Simple Sentence
+        </h1>
         <div className="mt-6 flex justify-center">
           <div className="relative w-full max-w-2xl">
             <div className="slanted-box px-8 pt-6 pb-3">
