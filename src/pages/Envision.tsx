@@ -28,9 +28,71 @@ const Envision: React.FC = () => {
     setIsMenuOpen(false);
   };
 
-  // Handle energy icon click - navigate to dashboard
-  const handleEnergyIconClick = () => {
-    navigate('/dashboard');
+  // Handle energy icon click - call dashboard API and navigate to dashboard
+  const handleEnergyIconClick = async () => {
+    try {
+      const authToken = localStorage.getItem('auth_token');
+      const basicAuth = localStorage.getItem('basic_auth');
+      const userEmail = localStorage.getItem('user_email');
+      const userPassword = localStorage.getItem('user_password');
+      
+      console.log('🔑 Auth token from localStorage:', authToken ? 'Found' : 'Not found');
+      console.log('🔑 Basic auth from localStorage:', basicAuth ? 'Found' : 'Not found');
+      console.log('🔑 User credentials from localStorage:', userEmail ? 'Found' : 'Not found');
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Try multiple authentication methods
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+        console.log('🔐 Adding Bearer token to request');
+      } else if (basicAuth) {
+        headers['Authorization'] = `Basic ${basicAuth}`;
+        console.log('🔐 Adding Basic auth to request');
+      } else if (userEmail && userPassword) {
+        const basicAuthFallback = btoa(`${userEmail}:${userPassword}`);
+        headers['Authorization'] = `Basic ${basicAuthFallback}`;
+        console.log('🔐 Adding Basic auth (from credentials) to request');
+      } else {
+        console.log('⚠️ No authentication available for dashboard request');
+      }
+
+      console.log('🚀 Making dashboard API call...');
+      const response = await fetch('http://34.239.246.193:5001/dashboard', {
+        method: 'GET',
+        headers,
+      });
+
+      console.log('📡 Dashboard API response status:', response.status);
+
+      if (response.ok) {
+        const dashboardData = await response.json();
+        console.log('✅ Dashboard data received:', dashboardData);
+        // Navigate to dashboard after successful API call
+        navigate('/dashboard');
+      } else {
+        console.error('❌ Dashboard API call failed:', response.status);
+        
+        // Try to get error details
+        try {
+          const errorData = await response.json();
+          console.error('📋 Error details:', errorData);
+        } catch (e) {
+          console.error('📋 Could not parse error response');
+        }
+        
+        // Still navigate to dashboard even if API fails
+        console.log('🔀 Navigating to dashboard anyway...');
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('🚨 Dashboard API error:', error);
+      // Still navigate to dashboard even if API fails
+      console.log('🔀 Navigating to dashboard anyway due to error...');
+      navigate('/dashboard');
+    }
   };
 
   // Handle logout

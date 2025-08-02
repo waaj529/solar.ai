@@ -51,27 +51,74 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Accept any email/password combination for demo purposes
-      if (email && password) {
-        const userData: User = {
-          id: Date.now().toString(),
+      const response = await fetch('http://34.239.246.193:5001/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           email,
-          firstName: email.split('@')[0] || 'User', // Use email prefix as first name
-          lastName: 'Demo'
+          password
+        }),
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        console.log('🔍 Full Login Response:', responseData); // Enhanced debug log
+        
+        // Store authentication token if provided
+        let token = null;
+        if (responseData.token) {
+          token = responseData.token;
+          console.log('📝 Found token:', token);
+        } else if (responseData.access_token) {
+          token = responseData.access_token;
+          console.log('📝 Found access_token:', token);
+        } else if (responseData.accessToken) {
+          token = responseData.accessToken;
+          console.log('📝 Found accessToken:', token);
+        } else {
+          console.log('⚠️ No token found in response, checking for session-based auth');
+          // For session-based authentication, we might not get a token
+          // but the login itself confirms authentication
+        }
+        
+        if (token) {
+          localStorage.setItem('auth_token', token);
+          console.log('💾 Token stored in localStorage');
+        } else {
+          // If no token but login successful, store user credentials for Basic Auth
+          const basicAuth = btoa(`${email}:${password}`);
+          localStorage.setItem('basic_auth', basicAuth);
+          console.log('💾 Basic auth credentials stored for dashboard access');
+        }
+        
+        // Store user credentials as fallback for dashboard authentication
+        localStorage.setItem('user_email', email);
+        localStorage.setItem('user_password', password);
+        
+        // Create user object from response data
+        const userData: User = {
+          id: responseData.id || responseData.user_id || Date.now().toString(),
+          email: responseData.email || email,
+          firstName: responseData.firstName || responseData.first_name || responseData.name?.split(' ')[0] || email.split('@')[0] || 'User',
+          lastName: responseData.lastName || responseData.last_name || responseData.name?.split(' ')[1] || 'Demo'
         };
+        
+        console.log('👤 Created user object:', userData);
         
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
         setIsLoading(false);
         return true;
       } else {
+        const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
+        console.error('❌ Login failed:', errorData);
         setIsLoading(false);
         return false;
       }
     } catch (error) {
+      console.error('🚨 Login error:', error);
       setIsLoading(false);
       return false;
     }
@@ -80,21 +127,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (userData: { email: string; password: string; firstName: string; lastName: string }): Promise<boolean> => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newUser: User = {
-        id: Date.now().toString(),
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
-      setIsLoading(false);
-      return true;
+      const response = await fetch('http://34.239.246.193:5001/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: `${userData.firstName} ${userData.lastName}`,
+          email: userData.email,
+          password: userData.password,
+          profile: {}
+        }),
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        
+        // Create user object from response data
+        const newUser: User = {
+          id: responseData.id || Date.now().toString(),
+          email: responseData.email || userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName
+        };
+        
+        setUser(newUser);
+        localStorage.setItem('user', JSON.stringify(newUser));
+        setIsLoading(false);
+        return true;
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Signup failed' }));
+        console.error('Signup failed:', errorData);
+        setIsLoading(false);
+        return false;
+      }
     } catch (error) {
+      console.error('Signup error:', error);
       setIsLoading(false);
       return false;
     }
@@ -103,6 +171,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('auth_token');
   };
 
   const value: AuthContextType = {

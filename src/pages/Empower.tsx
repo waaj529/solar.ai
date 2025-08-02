@@ -18,9 +18,71 @@ const Empower: React.FC = () => {
   const navClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'text-green-600 font-semibold' : 'hover:text-green-600';
 
-  // Handle energy icon click - navigate to dashboard
-  const handleEnergyIconClick = () => {
-    navigate('/dashboard');
+  // Handle energy icon click - call dashboard API and navigate to dashboard
+  const handleEnergyIconClick = async () => {
+    try {
+      const authToken = localStorage.getItem('auth_token');
+      const basicAuth = localStorage.getItem('basic_auth');
+      const userEmail = localStorage.getItem('user_email');
+      const userPassword = localStorage.getItem('user_password');
+      
+      console.log('🔑 Auth token from localStorage:', authToken ? 'Found' : 'Not found');
+      console.log('🔑 Basic auth from localStorage:', basicAuth ? 'Found' : 'Not found');
+      console.log('🔑 User credentials from localStorage:', userEmail ? 'Found' : 'Not found');
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      // Try multiple authentication methods
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+        console.log('🔐 Adding Bearer token to request');
+      } else if (basicAuth) {
+        headers['Authorization'] = `Basic ${basicAuth}`;
+        console.log('🔐 Adding Basic auth to request');
+      } else if (userEmail && userPassword) {
+        const basicAuthFallback = btoa(`${userEmail}:${userPassword}`);
+        headers['Authorization'] = `Basic ${basicAuthFallback}`;
+        console.log('🔐 Adding Basic auth (from credentials) to request');
+      } else {
+        console.log('⚠️ No authentication available for dashboard request');
+      }
+
+      console.log('🚀 Making dashboard API call...');
+      const response = await fetch('http://34.239.246.193:5001/dashboard', {
+        method: 'GET',
+        headers,
+      });
+
+      console.log('📡 Dashboard API response status:', response.status);
+
+      if (response.ok) {
+        const dashboardData = await response.json();
+        console.log('✅ Dashboard data received:', dashboardData);
+        // Navigate to dashboard after successful API call
+        navigate('/dashboard');
+      } else {
+        console.error('❌ Dashboard API call failed:', response.status);
+        
+        // Try to get error details
+        try {
+          const errorData = await response.json();
+          console.error('📋 Error details:', errorData);
+        } catch (e) {
+          console.error('📋 Could not parse error response');
+        }
+        
+        // Still navigate to dashboard even if API fails
+        console.log('🔀 Navigating to dashboard anyway...');
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error('🚨 Dashboard API error:', error);
+      // Still navigate to dashboard even if API fails
+      console.log('🔀 Navigating to dashboard anyway due to error...');
+      navigate('/dashboard');
+    }
   };
 
   return (
@@ -59,7 +121,7 @@ const Empower: React.FC = () => {
       {/* Search box and tabs */}
       <div className="text-center mt-8 px-4 relative z-10 max-w-2xl mx-auto">
         <h1 className="text-lg md:text-[20px] text-center italic font-semibold font-montserrat">
-          Design A Complete
+          Build A Complete
           <span className="text-green-600 font-bold italic"> Solar System</span> With One Simple Sentence
         </h1>
         <div className="mt-6 flex justify-center">
@@ -68,7 +130,7 @@ const Empower: React.FC = () => {
               <div className="flex items-start">
                 <input
                   type="text"
-                  placeholder="Let's Talk Energy"
+                  placeholder="Let's Build Something"
                   className="flex-1 text-lg italic font-medium text-gray-500 bg-transparent border-none outline-none slanted-text placeholder:italic placeholder:text-gray-500"
                 />
                 <div className="ml-4 flex items-center h-full">
@@ -108,16 +170,16 @@ const Empower: React.FC = () => {
         {/* Navigation tabs */}
         <div className="mt-4 flex justify-center gap-2">
           <div className="tab">
-            <span>Solar Diagram</span>
+            <span>Residential Solar</span>
           </div>
           <div className="tab">
-            <span>How Do Solar Panels Work?</span>
+            <span>Commercial Solar</span>
           </div>
           <div className="tab">
-            <span>Solar CAD Diagrams</span>
+            <span>Grid‑Tie Solar</span>
           </div>
           <div className="tab">
-            <span>Benefits Of Using Solar Energy</span>
+            <span>Off‑Grid Solar</span>
           </div>
         </div>
       </div>
@@ -180,6 +242,32 @@ const Empower: React.FC = () => {
           </div>
         </div>
       </section>
+      {/* Output artefacts section */}
+      <section className="mt-8 relative z-10 px-4">
+        <h1 className="text-center text-2xl md:text-3xl italic font-medium mb-6">
+          Output artefacts to <span className="text-green-600 font-semibold">EMPOWER</span> your build.
+        </h1>
+        <div className="output-grid grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <ul className="output-list space-y-3">
+            <li>• Load Analysis Report</li>
+            <li>• Solar Yield Calculations</li>
+            <li>• Single‑Line Diagram (SLD)</li>
+            <li>• Bill Of Materials</li>
+          </ul>
+          <ul className="output-list space-y-3">
+            <li>• Rooftop Layout</li>
+            <li>• Project Timeline</li>
+            <li>• Download Center</li>
+          </ul>
+        </div>
+      </section>
+
+      {/* Final tagline */}
+      <div className="mt-8 text-center text-lg md:text-lg font-semibold relative z-10 mb-4">
+        <span className="italic font-normal">One</span>{' '}
+        <span className="text-green-600 italic font-bold">Sentence.</span>{' '}
+        <span className="italic font-normal">One Build. One System</span>
+      </div>
       <Footer />
     </main>
   );
