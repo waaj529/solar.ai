@@ -76,11 +76,24 @@ class TokenStorage {
 const tokenStorage = new TokenStorage();
 
 // Create axios instance with base configuration
+const getApiBaseUrl = () => {
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
+  
+  // If we're in production and the API URL is HTTP, use a CORS proxy
+  if (!import.meta.env.DEV && baseUrl?.startsWith('http://')) {
+    return `https://cors-anywhere.herokuapp.com/${baseUrl}`;
+  }
+  
+  return baseUrl;
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
+  // Add timeout for better error handling
+  timeout: 15000, // Increased timeout for proxy requests
 });
 
 // Token management utilities
