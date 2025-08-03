@@ -92,6 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         profile: {}
       });
 
+      console.log('Signup successful:', response.data);
       // Signup successful - but don't automatically log the user in
       // User will need to sign in separately with their credentials
       setIsLoading(false);
