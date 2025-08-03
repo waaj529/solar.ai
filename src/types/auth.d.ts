@@ -5,11 +5,6 @@ export interface User {
   lastName: string;
 }
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
 export interface SignupData {
   firstName: string;
   lastName: string;
@@ -18,24 +13,18 @@ export interface SignupData {
 }
 
 export interface AuthResponse {
-  message: string;
   access_token?: string;
   token?: string;
-  user_id?: string;
   id?: string;
+  user_id?: string;
   email?: string;
-  name?: string;
   firstName?: string;
   lastName?: string;
   first_name?: string;
   last_name?: string;
-}
-
-export interface TokenPayload {
-  exp: number;
-  iat: number;
-  sub: string;
-  email?: string;
+  name?: string;
+  message?: string;
+  detail?: string;
 }
 
 export interface AuthContextType {

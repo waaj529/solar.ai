@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/services/AuthContext';
 
@@ -6,7 +6,6 @@ const SignIn: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -14,20 +13,9 @@ const SignIn: React.FC = () => {
   // Get the page user was trying to access before being redirected to signin
   const from = location.state?.from?.pathname || '/';
 
-  // Handle success message and email pre-fill from signup
-  useEffect(() => {
-    if (location.state?.message) {
-      setSuccessMessage(location.state.message);
-    }
-    if (location.state?.email) {
-      setEmail(location.state.email);
-    }
-  }, [location.state]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccessMessage('');
     
     const success = await login(email, password);
     
@@ -64,11 +52,6 @@ const SignIn: React.FC = () => {
                   {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                       {error}
-                    </div>
-                  )}
-                  {successMessage && (
-                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
-                      {successMessage}
                     </div>
                   )}
                   <div className="space-y-2">

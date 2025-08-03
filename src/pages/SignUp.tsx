@@ -8,14 +8,12 @@ const SignUp: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const { signup, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccessMessage('');
     
     const success = await signup({
       firstName,
@@ -25,17 +23,8 @@ const SignUp: React.FC = () => {
     });
     
     if (success) {
-      setSuccessMessage('Account created successfully! Please sign in with your credentials.');
-      // Wait a moment to show the success message, then redirect to sign in
-      setTimeout(() => {
-        navigate('/signin', { 
-          replace: true,
-          state: { 
-            message: 'Account created successfully! Please sign in with your credentials.',
-            email: email // Pre-fill email on sign in page
-          }
-        });
-      }, 2000);
+      // Navigate to home page after successful signup
+      navigate('/', { replace: true });
     } else {
       setError('Failed to create account. Please try again.');
     }
@@ -66,11 +55,6 @@ const SignUp: React.FC = () => {
                   {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
                       {error}
-                    </div>
-                  )}
-                  {successMessage && (
-                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
-                      {successMessage}
                     </div>
                   )}
                   <div className="grid grid-cols-2 gap-4">

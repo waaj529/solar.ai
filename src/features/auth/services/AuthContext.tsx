@@ -85,7 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (userData: SignupData): Promise<boolean> => {
     setIsLoading(true);
     try {
-      const response = await api.post<AuthResponse>('/signup', {
+      await api.post<AuthResponse>('/signup', {
         name: `${userData.firstName} ${userData.lastName}`,
         email: userData.email,
         password: userData.password,
