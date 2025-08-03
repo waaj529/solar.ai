@@ -1,19 +1,18 @@
 [build]
-  command = "rm -rf node_modules package-lock.json && npm install && npm run build"
+  command = "npm ci && npm run build"
   publish = "dist"
 
 [build.environment]
   NODE_VERSION = "18"
-  NPM_FLAGS = "--legacy-peer-deps"
 
-# API Proxy Configuration - forwards /api/* to your HTTP backend
+# 1) API → backend (works over HTTP because Netlify does the proxy server-side)
 [[redirects]]
   from = "/api/*"
   to = "http://75.119.151.238:5001/:splat"
   status = 200
   force = true
 
-# SPA Configuration - handles React Router
+# 2) SPA fallback for React Router
 [[redirects]]
   from = "/*"
   to = "/index.html"
