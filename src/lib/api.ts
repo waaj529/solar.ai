@@ -79,9 +79,9 @@ const tokenStorage = new TokenStorage();
 const getApiBaseUrl = () => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
   
-  // If we're in production and the API URL is HTTP, use a CORS proxy
-  if (!import.meta.env.DEV && baseUrl?.startsWith('http://')) {
-    return `https://cors-anywhere.herokuapp.com/${baseUrl}`;
+  // If we're in development and using relative path, use direct HTTP connection
+  if (import.meta.env.DEV && baseUrl === '/api') {
+    return 'http://75.119.151.238:5001';
   }
   
   return baseUrl;

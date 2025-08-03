@@ -6,6 +6,14 @@
   NODE_VERSION = "18"
   NPM_FLAGS = "--legacy-peer-deps"
 
+# API Proxy Configuration - forwards /api/* to your HTTP backend
+[[redirects]]
+  from = "/api/*"
+  to = "http://75.119.151.238:5001/:splat"
+  status = 200
+  force = true
+
+# SPA Configuration - handles React Router
 [[redirects]]
   from = "/*"
   to = "/index.html"
