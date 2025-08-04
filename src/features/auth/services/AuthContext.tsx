@@ -51,6 +51,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const responseData = response.data;
       console.log('Login Response:', responseData);
+      console.log('Login Response Keys:', Object.keys(responseData));
+      console.log('Available user ID fields:', {
+        id: responseData.id,
+        user_id: responseData.user_id,
+        email: responseData.email
+      });
+      
+      // Store the complete login response for user_id access
+      localStorage.setItem('login_response', JSON.stringify(responseData));
       
       // Extract token from response
       const token = responseData.access_token || responseData.token;
@@ -61,13 +70,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.warn('No token found in login response');
       }
       
-      // Create user object from response data
+      // Create user object from response data - FIX: Use proper user ID from API response
       const userData: User = {
-        id: responseData.id || responseData.user_id || Date.now().toString(),
+        // Use the actual user ID from the response, not a timestamp fallback
+        id: responseData.id || responseData.user_id || responseData.email || email,
         email: responseData.email || email,
         firstName: responseData.firstName || responseData.first_name || responseData.name?.split(' ')[0] || email.split('@')[0] || 'User',
         lastName: responseData.lastName || responseData.last_name || responseData.name?.split(' ')[1] || 'Demo'
       };
+      
+      console.log('Created user data:', userData);
+      console.log('Final user ID being used:', userData.id);
       
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
@@ -114,6 +127,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('basic_auth');
     localStorage.removeItem('user_email');
     localStorage.removeItem('user_password');
+    localStorage.removeItem('login_response');
   };
 
   const contextValue: AuthContextType = {

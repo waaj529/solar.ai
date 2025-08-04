@@ -3,6 +3,8 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/services/AuthContext';
 import api from '../lib/api';
 import Footer from '../components/Footer';
+import { SkewedSolarQAInterface } from '../components/SkewedSolarQAInterface';
+import { QAConversationFlow } from '../components/QAConversationFlow';
 import leftGraphic from '../assets/Envision.png';
 import verticalGraphic from '../assets/Group 1171277870.png';
 
@@ -209,45 +211,11 @@ const Envision: React.FC = () => {
             <span className="text-green-600 font-bold italic"> Solar System</span> With One Simple Sentence
           </h1>
           
-          {/* Search container - Mobile responsive */}
+          {/* Search container - Mobile responsive with Solar QA Integration */}
           <div className="mt-4 sm:mt-6 flex justify-center">
             <div className="relative w-full max-w-2xl">
               <div className="slanted-box px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 pb-2 sm:pb-3">
-                <div className="flex items-start">
-                  <input
-                    type="text"
-                    placeholder="Let's Talk Energy"
-                    className="flex-1 text-sm sm:text-base md:text-lg italic font-medium text-gray-500 bg-transparent border-none outline-none slanted-text placeholder:italic placeholder:text-gray-500"
-                  />
-                  <div className="ml-2 sm:ml-4 flex items-center h-full">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8 sm:h-10 sm:w-10 text-yellow-400 cursor-pointer hover:text-green-600 transition-colors duration-200 touch-manipulation"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      onClick={handleEnergyIconClick}
-                    >
-                      <title>Connect to Dashboard</title>
-                      <polygon
-                        points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
-                        fill="#D1FF3A"
-                        stroke="#B6E51D"
-                        strokeWidth="1.5"
-                      />
-                    </svg>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 sm:gap-4 mt-2 sm:mt-4 ml-1">
-                  <span className="material-icons h-5 w-5 sm:h-7 sm:w-7 text-gray-400 hover:text-green-600 hover:shadow-lg transition cursor-pointer touch-manipulation text-lg sm:text-xl">
-                    mic
-                  </span>
-                  <span className="material-icons h-4 w-4 sm:h-6 sm:w-6 text-gray-400 hover:text-green-600 cursor-pointer touch-manipulation text-base sm:text-lg">
-                    image
-                  </span>
-                  <span className="material-icons h-4 w-4 sm:h-6 sm:w-6 text-gray-400 hover:text-green-600 cursor-pointer touch-manipulation text-base sm:text-lg">
-                    attach_file
-                  </span>
-                </div>
+                <SkewedSolarQAInterface onEnergyIconClick={handleEnergyIconClick} />
               </div>
             </div>
           </div>
@@ -281,6 +249,9 @@ const Envision: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* QA Conversation Flow - appears below original content when activated */}
+      <QAConversationFlow />
 
       {/* Example glow panels - Mobile responsive */}
       <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-center items-center sm:items-stretch gap-4 sm:gap-8 overflow-x-auto px-3 sm:px-4 relative z-10">

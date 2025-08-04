@@ -3,6 +3,8 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/services/AuthContext';
 import api from '../lib/api';
 import Footer from '../components/Footer';
+import { SkewedSolarQAInterface } from '../components/SkewedSolarQAInterface';
+import { QAConversationFlow } from '../components/QAConversationFlow';
 import leftGraphic from '../assets/Empower.png';
 import verticalGraphic from '../assets/Group 1171277870.png';
 
@@ -93,43 +95,7 @@ const Empower: React.FC = () => {
         <div className="mt-6 flex justify-center">
           <div className="relative w-full max-w-2xl">
             <div className="slanted-box px-8 pt-6 pb-3">
-              <div className="flex items-start">
-                <input
-                  type="text"
-                  placeholder="Let's Build Something"
-                  className="flex-1 text-lg italic font-medium text-gray-500 bg-transparent border-none outline-none slanted-text placeholder:italic placeholder:text-gray-500"
-                />
-                <div className="ml-4 flex items-center h-full">
-                  {/* Lightning bolt icon drawn inline */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-10 w-10 text-yellow-400 cursor-pointer hover:text-green-600 transition-colors duration-200"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    onClick={handleEnergyIconClick}
-                  >
-                    <title>Connect to Dashboard</title>
-                    <polygon
-                      points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
-                      fill="#D1FF3A"
-                      stroke="#B6E51D"
-                      strokeWidth="1.5"
-                    />
-                  </svg>
-                </div>
-              </div>
-              {/* Icons row */}
-              <div className="flex items-center gap-4 mt-4 ml-1">
-                <span className="material-icons h-7 w-7 text-gray-400 hover:text-green-600 hover:shadow-lg transition cursor-pointer">
-                  mic
-                </span>
-                <span className="material-icons h-6 w-6 text-gray-400 hover:text-green-600 cursor-pointer">
-                  image
-                </span>
-                <span className="material-icons h-6 w-6 text-gray-400 hover:text-green-600 cursor-pointer">
-                  attach_file
-                </span>
-              </div>
+              <SkewedSolarQAInterface onEnergyIconClick={handleEnergyIconClick} />
             </div>
           </div>
         </div>
@@ -149,6 +115,9 @@ const Empower: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* QA Conversation Flow - appears below original content when activated */}
+      <QAConversationFlow />
 
       {/* Solar blueprint section */}
       <section className="mt-8 relative z-10 px-4">

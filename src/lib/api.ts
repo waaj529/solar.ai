@@ -114,6 +114,9 @@ const decodeJWT = (token: string): TokenPayload | null => {
   }
 };
 
+// Export JWT decode function for use in other files
+export const decodeJWTToken = decodeJWT;
+
 // Check if token is expired or will expire soon
 const isTokenExpired = (token: string): boolean => {
   const payload = decodeJWT(token);
