@@ -129,6 +129,19 @@ const decodeJWT = (token: string): TokenPayload | null => {
   }
 };
 
+// Public helpers to derive user id from JWT
+export const getUserIdFromToken = (token: string): string | null => {
+  const payload = decodeJWT(token);
+  return payload?.sub || null;
+};
+
+export const getUserIdFromStoredToken = (): string | null => {
+  const token = getStoredToken();
+  if (!token) return null;
+  const payload = decodeJWT(token);
+  return payload?.sub || payload?.email || null;
+};
+
 // Check if token is expired or will expire soon
 const isTokenExpired = (token: string): boolean => {
   const payload = decodeJWT(token);
@@ -142,13 +155,17 @@ const isTokenExpired = (token: string): boolean => {
   return timeUntilExpiry <= refreshBuffer * 1000; // Refresh if expiring within buffer time
 };
 
-// Refresh token function
+// Refresh token function (no-op unless VITE_TOKEN_REFRESH_ENDPOINT is configured)
 const refreshToken = async (): Promise<string | null> => {
   try {
     const currentToken = getStoredToken();
     if (!currentToken) return null;
 
-  const refreshEndpoint = import.meta.env.VITE_TOKEN_REFRESH_ENDPOINT || '/refresh';
+  const refreshEndpoint = (import.meta.env.VITE_TOKEN_REFRESH_ENDPOINT || '').trim();
+  if (!refreshEndpoint) {
+    // No refresh endpoint configured; skip silently
+    return null;
+  }
   // Use resolved base URL for refresh to work in both dev and production
   const response = await axios.post(`${getApiBaseUrl()}${refreshEndpoint}`, {}, {
       headers: {
@@ -215,5 +232,90 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// -------------------------------
+// Domain-specific API helpers
+// -------------------------------
+
+export interface SaveQuestionAndAnswersParams {
+  user_id: string | number;
+  prompt: string;
+  answers: string[];
+}
+
+export interface SaveQAResponse {
+  message?: string;
+  nlp_id?: string; // FastAPI may return this id for the saved NLP entry
+  id?: string;     // or `id` depending on implementation
+  [key: string]: unknown;
+}
+
+/**
+ * Calls the backend to generate clarification prompts for a freeform text input.
+ * The endpoint can be configured via VITE_SOLAR_CLARIFY_ENDPOINT. Defaults to '/clarify'.
+ */
+export const solarClarify = async (text: string): Promise<string[]> => {
+  // Default to FastAPI route shown in your docs
+  const endpoint = import.meta.env.VITE_SOLAR_CLARIFY_ENDPOINT || '/solar/clarify';
+  const payload = { prompt: text };
+
+  const response = await api.post(endpoint, payload);
+
+  // Accept a few common response shapes
+  const data = response?.data;
+  const clarifications =
+    (Array.isArray(data) && data) ||
+    (Array.isArray(data?.clarifications) && data?.clarifications) ||
+    (Array.isArray(data?.data) && data?.data) ||
+    [];
+
+  return clarifications as string[];
+};
+
+/**
+ * Persists the user's prompt and the derived clarifications.
+ * The endpoint can be configured via VITE_SAVE_QA_ENDPOINT. Defaults to '/question_ans_save'.
+ */
+export const saveQuestionAndAnswers = async (
+  params: SaveQuestionAndAnswersParams
+): Promise<SaveQAResponse> => {
+  const endpoint = import.meta.env.VITE_SAVE_QA_ENDPOINT || '/question_ans_save';
+
+  // Normalize payload to ensure valid JSON and match FastAPI schema
+  const payload: SaveQuestionAndAnswersParams = {
+    user_id: typeof params.user_id === 'number' ? String(params.user_id) : String(params.user_id),
+    prompt: String(params.prompt || '').trim(),
+    answers: (params.answers || []).map((a) => String(a).trim()),
+  };
+
+  if (!payload.prompt) {
+    throw new Error('Prompt is required');
+  }
+  if (!Array.isArray(payload.answers) || payload.answers.length === 0) {
+    throw new Error('At least one answer is required');
+  }
+
+  if (import.meta.env.DEV) {
+    try {
+      // Validate that payload is serializable JSON prior to sending
+      JSON.stringify(payload);
+      // eslint-disable-next-line no-console
+      console.debug('POST', endpoint, 'payload →', payload);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('Invalid payload for saveQuestionAndAnswers:', e);
+    }
+  }
+
+  try {
+    const response = await api.post(endpoint, payload);
+    return response.data as SaveQAResponse;
+  } catch (err: any) {
+    const serverMessage = err?.response?.data || err?.message || 'Request failed';
+    // eslint-disable-next-line no-console
+    console.error('saveQuestionAndAnswers → server error:', serverMessage);
+    throw err;
+  }
+};
 
 export default api;

@@ -1,8 +1,8 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../features/auth/services/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import api from '../lib/api';
 import Footer from '../components/Footer';
+import Navigation from '../components/Navigation';
 import boltIcon from '@icons/image (202) 2 (1).png';
 import leftGraphic from '../assets/Evolve.png';
 import verticalGraphic from '../assets/Group 1171277870.png';
@@ -13,11 +13,6 @@ import verticalGraphic from '../assets/Group 1171277870.png';
  */
 const Evolve: React.FC = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
-
-  // helper for active nav link classes
-  const navClass = ({ isActive }: { isActive: boolean }) =>
-    isActive ? 'text-green-600 font-semibold' : 'hover:text-green-600';
 
   // Handle energy icon click - call dashboard API and navigate to dashboard
   const handleEnergyIconClick = async () => {
@@ -40,35 +35,10 @@ const Evolve: React.FC = () => {
     }
   };
 
-  // Handle logout
-  const handleLogout = () => {
-    logout();
-    navigate('/signin');
-  };
-
   return (
     <main className="relative overflow-x-hidden">
-      {/* Navigation links at the top */}
-      <nav className="flex justify-end items-center p-4 space-x-6 text-gray-600 font-medium">
-        <NavLink to="/envision" className={navClass}>
-          ENVISION
-        </NavLink>
-        <NavLink to="/engineer" className={navClass}>
-          ENGINEER
-        </NavLink>
-        <NavLink to="/empower" className={navClass}>
-          EMPOWER
-        </NavLink>
-        <NavLink to="/evolve" className={navClass}>
-          EVOLVE
-        </NavLink>
-        <button
-          onClick={handleLogout}
-          className="text-gray-600 hover:text-red-600 transition-colors"
-        >
-          SIGN OUT
-        </button>
-      </nav>
+      {/* Global Navigation (responsive) */}
+      <Navigation />
 
       {/* Background images */}
       <img
@@ -79,7 +49,7 @@ const Evolve: React.FC = () => {
       <img
         src={verticalGraphic}
         alt="Vertical text graphic"
-        className="absolute top-0 left-0 h-[30rem] w-auto block z-0"
+        className="absolute top-0 left-0 h-[30rem] w-auto hidden md:block z-0"
       />
 
       {/* Search and tabs */}
@@ -187,7 +157,9 @@ const Evolve: React.FC = () => {
         </h2>
         <p className="tagline">— Solar Design Now Operates At The Speed Of Thought.</p>
       </div>
-      <Footer />
+      <div className="mt-8">
+        <Footer />
+      </div>
     </main>
   );
 };

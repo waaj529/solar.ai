@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Progress } from "../ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../shared/ui/card";
+import { Progress } from "../../../shared/ui/progress";
 
 export function LoadAnalysis() {
   return (

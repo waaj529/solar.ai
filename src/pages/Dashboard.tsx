@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { ModuleSidebar } from "../components/ModuleSidebar";
-import { SidebarProvider } from "../shared/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "../shared/ui/sidebar";
 import { LoadAnalysis } from "../components/modules/LoadAnalysis";
 import { SolarYield } from "../components/modules/SolarYield";
 import { SLDDiagram } from "../components/modules/SLDDiagram";
@@ -43,6 +43,10 @@ const Dashboard: React.FC = () => {
        * GREEN Infina landing page without overpowering the content.
        */}
       <div className="min-h-screen flex w-full bg-gradient-to-br from-secondary/10 via-background to-primary/10">
+        {/* Mobile sidebar trigger */}
+        <div className="fixed top-2 left-2 z-50 md:hidden">
+          <SidebarTrigger className="h-9 w-9 rounded-lg border bg-white/90 backdrop-blur-sm shadow-sm" />
+        </div>
         {/* Back to main site navigation - responsive positioning */}
         <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-50">
           <NavLink

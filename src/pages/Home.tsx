@@ -202,8 +202,8 @@ const Home: React.FC = () => {
         </div>
       </div>
       
-      {/* Footer with responsive spacing */}
-      <div className="mt-12 sm:mt-16 md:mt-20">
+      {/* Footer with compact spacing to avoid large bottom gaps */}
+      <div className="mt-8 sm:mt-10 md:mt-12">
         <Footer />
       </div>
     </main>

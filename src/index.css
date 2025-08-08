@@ -301,6 +301,61 @@ body {
   }
 }
 
+/* Polygonal CTA button used on auth pages to match Figma */
+.cta-gradient-button {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  clip-path: polygon(7% 0%, 100% 0%, 93% 100%, 0% 100%);
+  background: linear-gradient(90deg, #D5F0B3 0%, #F4F7B8 50%, #FFF8A6 100%);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.10);
+}
+
+/* Diagonal clipped hero panel to match signup Figma */
+.auth-hero-clip {
+  /* widen diagonal coverage to sit behind hero text */
+  clip-path: polygon(0 0, 100% 0, 65% 100%, 0 100%);
+}
+
+@media (min-width: 1440px) {
+  .auth-hero-clip {
+    clip-path: polygon(0 0, 100% 0, 65% 100%, 0 100%);
+  }
+}
+
+/* Skewed input field wrapper to clone Figma style */
+.skew-field {
+  box-sizing: border-box;
+  background: #FFFFFF;
+  border: 1px solid #EBEBEB;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+  transform: skewX(-10deg);
+}
+
+.skew-field:focus-within {
+  border-color: rgba(35, 209, 75, 0.45);
+  box-shadow: 0 0 0 2px rgba(35, 209, 75, 0.25), 0 6px 10px rgba(0,0,0,0.15);
+}
+
+.skew-field-input {
+  transform: skewX(10deg);
+  height: 56px;
+  width: 100%;
+  padding: 0 18px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 16px;
+}
+
+.skew-field-input::placeholder {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #6B7280; /* gray-500 */
+}
+
 /* Responsive pill shaped tagline container - Updated to match original design */
 .group-1171280748 {
   position: relative;

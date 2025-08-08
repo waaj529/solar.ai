@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/services/AuthContext';
-import api from '../lib/api';
+import api, { saveQuestionAndAnswers as saveQAFromLib, getUserIdFromStoredToken, getStoredToken } from '../lib/api';
 import Footer from '../components/Footer';
+import Navigation from '../components/Navigation';
 import leftGraphic from '../assets/Envision.png';
 import verticalGraphic from '../assets/Group 1171277870.png';
 
@@ -14,179 +15,225 @@ import verticalGraphic from '../assets/Group 1171277870.png';
  */
 const Envision: React.FC = () => {
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout } = useAuth();
+  // const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user } = useAuth();
 
-  // helper for active nav link classes
-  const navClass = ({ isActive }: { isActive: boolean }) =>
-    isActive ? 'text-green-600 font-semibold' : 'hover:text-green-600';
+  const [query, setQuery] = useState<string>('');
+  const [basePrompt, setBasePrompt] = useState<string>('');
+  const [clarifications, setClarifications] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
+  // Local API helpers
+
+  const callSolarClarify = async (text: string): Promise<string[]> => {
+    const endpoint = import.meta.env.VITE_SOLAR_CLARIFY_ENDPOINT || '/solar/clarify';
+    const response = await api.post(endpoint, { prompt: text });
+    const data = response?.data;
+    const clarifications =
+      (Array.isArray(data) && data) ||
+      (Array.isArray(data?.clarifications) && data?.clarifications) ||
+      (Array.isArray(data?.data) && data?.data) ||
+      [];
+    return clarifications as string[];
   };
 
-  const closeMenu = () => {
-    setIsMenuOpen(false);
+  const saveQuestionAndAnswers = async (
+    params: { user_id: string | number; prompt: string; answers: string[] }
+  ): Promise<unknown> => {
+    return await saveQAFromLib(params);
   };
 
-  // Handle energy icon click - call dashboard API and navigate to dashboard
-  const handleEnergyIconClick = async () => {
+  const triggerClarify = async (text: string) => {
+    const trimmed = text.trim();
+    if (trimmed.length === 0) {
+      setClarifications([]);
+      return;
+    }
     try {
-      console.log('🚀 Making dashboard API call...');
-      const response = await api.get('/dashboard');
-
-      console.log('📡 Dashboard API response status:', response.status);
-      console.log('✅ Dashboard data received:', response.data);
-      // Navigate to dashboard after successful API call
-      navigate('/dashboard');
-    } catch (error: any) {
-      console.error('🚨 Dashboard API error:', error);
-      const errorMessage = error.response?.data?.detail || error.response?.data?.message || 'Dashboard request failed';
-      console.error('❌ Dashboard API call failed:', errorMessage);
-      
-      // Still navigate to dashboard even if API fails
-      console.log('🔀 Navigating to dashboard anyway due to error...');
-      navigate('/dashboard');
+      setBasePrompt(trimmed);
+      const result = await callSolarClarify(trimmed);
+      setClarifications(result || []);
+      console.log('Clarify →', result);
+    } catch (error) {
+      console.error('Clarify request failed:', error);
     }
   };
 
-  // Handle logout
-  const handleLogout = () => {
-    logout();
-    navigate('/signin');
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
   };
+
+  // Submit handler is the single source of truth for starting clarification
+  const handleClarifySubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    await triggerClarify(trimmed);
+  };
+
+  const ensureUserId = (): string => {
+    const isObjectId = (v: string) => /^[a-f0-9]{24}$/i.test(v);
+    if (user?.id) {
+      const candidate = String(user.id);
+      if (isObjectId(candidate)) return candidate;
+    }
+    // Try to extract user id from JWT if available
+    const tokenUserId = getUserIdFromStoredToken();
+    if (tokenUserId && isObjectId(String(tokenUserId))) {
+      return String(tokenUserId);
+    }
+    let anon = localStorage.getItem('anon_user_id');
+    if (!anon) {
+      try {
+        // Generate a Mongo-like ObjectId (24 hex chars)
+        const getHex = (len: number) => {
+          if (typeof crypto !== 'undefined' && 'getRandomValues' in crypto) {
+            const bytes = new Uint8Array(len / 2);
+            crypto.getRandomValues(bytes);
+            return Array.from(bytes)
+              .map((b) => b.toString(16).padStart(2, '0'))
+              .join('');
+          }
+          let out = '';
+          for (let i = 0; i < len; i++) {
+            out += Math.floor(Math.random() * 16).toString(16);
+          }
+          return out;
+        };
+        anon = getHex(24);
+      } catch {
+        // Fallback simple hex string
+        anon = `${Date.now().toString(16)}${Math.floor(Math.random() * 0xffffff)
+          .toString(16)
+          .padStart(6, '0')}`
+          .slice(0, 24)
+          .padEnd(24, '0');
+      }
+      localStorage.setItem('anon_user_id', anon);
+    }
+    // If stored anon is malformed, regenerate
+    if (!/^[a-f0-9]{24}$/i.test(anon)) {
+      const regen = anon.slice(0, 24).padEnd(24, '0');
+      localStorage.setItem('anon_user_id', regen);
+      return regen;
+    }
+    return anon;
+  };
+
+  const handleSubmit = async (): Promise<string | null> => {
+    try {
+      const uid = ensureUserId();
+      const promptToSend = (query.trim() || basePrompt).trim();
+      const payload = {
+        user_id: uid,
+        prompt: promptToSend,
+        answers: answers.map((a) => a.trim()),
+      };
+
+      // Debug logs to mirror the expected successful console output
+      // eslint-disable-next-line no-console
+      console.groupCollapsed('=== SAVING Q&A ANSWERS ===');
+      // eslint-disable-next-line no-console
+      console.log('User object:', user);
+      // eslint-disable-next-line no-console
+      console.log('Access token available:', getStoredToken() ? 'Yes' : 'No');
+      const tokenUserId = getUserIdFromStoredToken();
+      if (tokenUserId) {
+        // eslint-disable-next-line no-console
+        console.log('Extracted user_id from JWT token sub field:', tokenUserId);
+      }
+      // eslint-disable-next-line no-console
+      console.log('Final user_id being used:', uid);
+      // eslint-disable-next-line no-console
+      console.log('API payload:', JSON.stringify(payload, null, 2));
+
+      const res = (await saveQuestionAndAnswers(payload)) as { nlp_id?: string; id?: string; message?: string };
+
+      // eslint-disable-next-line no-console
+      console.log('✅ Q&A SAVE SUCCESS:', res);
+      // eslint-disable-next-line no-console
+      console.groupEnd();
+      return res?.nlp_id || res?.id || null;
+    } catch (error: any) {
+      // eslint-disable-next-line no-console
+      console.error('Save question/answers failed:', error?.response?.data || error?.message || error);
+      try {
+        // eslint-disable-next-line no-console
+        console.groupEnd();
+      } catch {}
+      return null;
+    }
+  };
+
+  // Reset answers and index when a new set of clarifications arrives
+  useEffect(() => {
+    if (clarifications.length > 0) {
+      setAnswers(clarifications.map(() => ''));
+      setCurrentIndex(0);
+    } else {
+      setAnswers([]);
+      setCurrentIndex(0);
+    }
+  }, [clarifications]);
+
+  const handleAnswerChange = (index: number, value: string) => {
+    setAnswers((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
+    });
+  };
+
+  const isLastQuestion =
+    clarifications.length > 0 && currentIndex === clarifications.length - 1;
+
+  const handleNext = async () => {
+    // Require a non-empty answer
+    const currentAnswer = answers[currentIndex]?.trim() || '';
+    if (!currentAnswer) return;
+
+    if (isLastQuestion) {
+      const nlpId = await handleSubmit();
+      if (nlpId) {
+        localStorage.setItem('latest_nlp_id', nlpId);
+        // eslint-disable-next-line no-console
+        console.log('✅ Q&A answers saved successfully, redirecting to dashboard...');
+      }
+      // eslint-disable-next-line no-console
+      console.log('🚀 Navigating to dashboard...');
+      navigate('/dashboard');
+      return;
+    }
+
+    setCurrentIndex((idx) => Math.min(idx + 1, clarifications.length - 1));
+  };
+
+  // helper for active nav link classes
+  // const navClass = ({ isActive }: { isActive: boolean }) =>
+  //   isActive ? 'text-green-600 font-semibold' : 'hover:text-green-600';
+
+  // const toggleMenu = () => {
+  //   setIsMenuOpen(!isMenuOpen);
+  // };
+
+  // const closeMenu = () => {
+  //   setIsMenuOpen(false);
+  // };
+
+  // Removed separate energy icon click path; form submission handles it
+
+  // Handle logout
+  // const handleLogout = () => {
+  //   logout();
+  //   navigate('/signin');
+  // };
 
   return (
     <main className="relative overflow-x-hidden w-full min-h-screen">
-      {/* Navigation - Mobile First with Hamburger Menu */}
-      <nav className="relative w-full">
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex justify-between items-center p-4 text-gray-600 font-medium">
-          <div className="flex items-center space-x-4">
-            <span className="text-sm">Welcome, {user?.firstName}</span>
-          </div>
-          <div className="flex items-center space-x-6">
-            <NavLink to="/envision" className={navClass}>
-              ENVISION
-            </NavLink>
-            <NavLink to="/engineer" className={navClass}>
-              ENGINEER
-            </NavLink>
-            <NavLink to="/empower" className={navClass}>
-              EMPOWER
-            </NavLink>
-            <NavLink to="/evolve" className={navClass}>
-              EVOLVE
-            </NavLink>
-            <button
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-red-600 transition-colors"
-            >
-              SIGN OUT
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation Header */}
-        <div className="md:hidden flex justify-between items-center p-3 relative z-30">
-          {/* Logo - clicking goes to home */}
-          <NavLink to="/" className="text-lg sm:text-xl font-bold text-green-600">
-            GREEN<span className="text-gray-700"> INFINA</span>
-          </NavLink>
-          
-          {/* Hamburger Menu Button */}
-          <button
-            onClick={toggleMenu}
-            className="relative z-50 p-2 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 touch-manipulation"
-            aria-label="Toggle menu"
-          >
-            <div className="w-6 h-6 relative">
-              <span
-                className={`absolute top-0 left-0 w-6 h-0.5 bg-gray-600 transform transition-all duration-300 ${
-                  isMenuOpen ? 'rotate-45 translate-y-2.5' : ''
-                }`}
-              ></span>
-              <span
-                className={`absolute top-2.5 left-0 w-6 h-0.5 bg-gray-600 transform transition-all duration-300 ${
-                  isMenuOpen ? 'opacity-0' : ''
-                }`}
-              ></span>
-              <span
-                className={`absolute top-5 left-0 w-6 h-0.5 bg-gray-600 transform transition-all duration-300 ${
-                  isMenuOpen ? '-rotate-45 -translate-y-2.5' : ''
-                }`}
-              ></span>
-            </div>
-          </button>
-        </div>
-
-        {/* Mobile Menu Overlay */}
-        {isMenuOpen && (
-          <div 
-            className="md:hidden fixed inset-0 z-40 bg-black bg-opacity-50 touch-manipulation" 
-            onClick={closeMenu}
-          ></div>
-        )}
-
-        {/* Mobile Menu Drawer */}
-        <div
-          className={`md:hidden fixed top-0 right-0 h-full w-64 bg-white z-50 transform transition-transform duration-300 ease-in-out shadow-xl ${
-            isMenuOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
-          <div className="flex flex-col pt-16 px-6 space-y-6">
-            <div className="pb-4 border-b border-gray-200">
-              <p className="text-sm text-gray-600">Welcome,</p>
-              <p className="font-semibold text-gray-800">{user?.firstName} {user?.lastName}</p>
-            </div>
-            <NavLink
-              to="/envision"
-              className={({ isActive }) =>
-                `block py-3 text-lg font-medium touch-manipulation ${isActive ? 'text-green-600 font-semibold' : 'text-gray-600 hover:text-green-600'}`
-              }
-              onClick={closeMenu}
-            >
-              ENVISION
-            </NavLink>
-            <NavLink
-              to="/engineer"
-              className={({ isActive }) =>
-                `block py-3 text-lg font-medium touch-manipulation ${isActive ? 'text-green-600 font-semibold' : 'text-gray-600 hover:text-green-600'}`
-              }
-              onClick={closeMenu}
-            >
-              ENGINEER
-            </NavLink>
-            <NavLink
-              to="/empower"
-              className={({ isActive }) =>
-                `block py-3 text-lg font-medium touch-manipulation ${isActive ? 'text-green-600 font-semibold' : 'text-gray-600 hover:text-green-600'}`
-              }
-              onClick={closeMenu}
-            >
-              EMPOWER
-            </NavLink>
-            <NavLink
-              to="/evolve"
-              className={({ isActive }) =>
-                `block py-3 text-lg font-medium touch-manipulation ${isActive ? 'text-green-600 font-semibold' : 'text-gray-600 hover:text-green-600'}`
-              }
-              onClick={closeMenu}
-            >
-              EVOLVE
-            </NavLink>
-            <button
-              onClick={() => {
-                closeMenu();
-                handleLogout();
-              }}
-              className="block py-3 text-lg font-medium text-red-600 hover:text-red-700 touch-manipulation text-left"
-            >
-              SIGN OUT
-            </button>
-          </div>
-        </div>
-      </nav>
+      {/* Global Navigation (reused responsive component) */}
+      <Navigation />
 
       {/* Background images - completely hidden on mobile */}
       <img
@@ -213,21 +260,23 @@ const Envision: React.FC = () => {
           <div className="mt-4 sm:mt-6 flex justify-center">
             <div className="relative w-full max-w-2xl">
               <div className="slanted-box px-4 sm:px-6 md:px-8 pt-4 sm:pt-6 pb-2 sm:pb-3">
-                <div className="flex items-start">
+                <form onSubmit={handleClarifySubmit} className="flex items-start justify-between">
                   <input
                     type="text"
                     placeholder="Let's Talk Energy"
                     className="flex-1 text-sm sm:text-base md:text-lg italic font-medium text-gray-500 bg-transparent border-none outline-none slanted-text placeholder:italic placeholder:text-gray-500"
+                    value={query}
+                    onChange={handleInputChange}
                   />
-                  <div className="ml-2 sm:ml-4 flex items-center h-full">
+                  {/* Energy icon at the top-right (original position) */}
+                  <button type="submit" className="ml-2 sm:ml-4 flex items-center h-full">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       className="h-8 w-8 sm:h-10 sm:w-10 text-yellow-400 cursor-pointer hover:text-green-600 transition-colors duration-200 touch-manipulation"
                       viewBox="0 0 24 24"
                       fill="none"
-                      onClick={handleEnergyIconClick}
                     >
-                      <title>Connect to Dashboard</title>
+                      <title>Start</title>
                       <polygon
                         points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
                         fill="#D1FF3A"
@@ -235,18 +284,56 @@ const Envision: React.FC = () => {
                         strokeWidth="1.5"
                       />
                     </svg>
+                  </button>
+                </form>
+                {/* Clarification wizard: show one question at a time */}
+                {clarifications.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex justify-between items-center text-xs text-gray-600">
+                      <span>
+                        Question {currentIndex + 1} of {clarifications.length}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-start gap-2">
+                      <div className="px-2 py-1 text-xs rounded-full bg-green-50 text-green-700 border border-green-200">
+                        {clarifications[currentIndex]}
+                      </div>
+                      <input
+                        type="text"
+                        value={answers[currentIndex] || ''}
+                        onChange={(e) => handleAnswerChange(currentIndex, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') handleNext();
+                        }}
+                        placeholder="Your answer"
+                        className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-2 sm:gap-4 mt-2 sm:mt-4 ml-1">
-                  <span className="material-icons h-5 w-5 sm:h-7 sm:w-7 text-gray-400 hover:text-green-600 hover:shadow-lg transition cursor-pointer touch-manipulation text-lg sm:text-xl">
-                    mic
-                  </span>
-                  <span className="material-icons h-4 w-4 sm:h-6 sm:w-6 text-gray-400 hover:text-green-600 cursor-pointer touch-manipulation text-base sm:text-lg">
-                    image
-                  </span>
-                  <span className="material-icons h-4 w-4 sm:h-6 sm:w-6 text-gray-400 hover:text-green-600 cursor-pointer touch-manipulation text-base sm:text-lg">
-                    attach_file
-                  </span>
+                )}
+                {/* Bottom actions row: icons left, action button right */}
+                <div className="pt-2 sm:pt-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3 ml-1">
+                    <span className="material-icons h-5 w-5 sm:h-6 sm:w-6 text-gray-400 hover:text-green-600 transition cursor-pointer touch-manipulation text-lg">
+                      mic
+                    </span>
+                    <span className="material-icons h-5 w-5 sm:h-6 sm:w-6 text-gray-400 hover:text-green-600 cursor-pointer touch-manipulation text-lg">
+                      image
+                    </span>
+                    <span className="material-icons h-5 w-5 sm:h-6 sm:w-6 text-gray-400 hover:text-green-600 cursor-pointer touch-manipulation text-lg">
+                      attach_file
+                    </span>
+                  </div>
+                  {clarifications.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      disabled={!((answers[currentIndex] || '').trim().length)}
+                      className="inline-flex items-center gap-2 rounded-md bg-green-600 text-white text-sm px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLastQuestion ? 'Finish' : 'Next'}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

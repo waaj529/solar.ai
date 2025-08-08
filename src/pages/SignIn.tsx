@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/services/AuthContext';
-import boltIcon from '@icons/image (202) 2 (1).png';
+import signinBg from '@/assets/background sign in page.png';
+import greenLogo from '@/assets/GREEN Logo - High 21.png';
+import leftTopBrand from '@/assets/Group 1171277870.png';
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
@@ -41,124 +44,171 @@ const SignIn: React.FC = () => {
   };
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="flex flex-col gap-4 p-6 md:p-10">
-        <div className="flex justify-center gap-2 md:justify-start">
-          <NavLink to="/" className="flex items-center gap-2 font-medium">
-            <div className="bg-green-600 text-white flex size-8 items-center justify-center rounded-md">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold text-gray-800">GREEN Infina</span>
-          </NavLink>
+    <div className="grid min-h-screen lg:grid-cols-12 relative pb-16 md:pb-20 lg:pb-0">
+      {/* Left visual panel from Figma: gradient + background image */}
+      <div className="relative hidden lg:block lg:col-span-7">
+        {/* Clipped background only */}
+        <div className="absolute inset-0 auth-hero-clip overflow-hidden z-0">
+          <img
+            src={signinBg}
+            alt="Sign in background"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-200/50 via-white/50 to-green-200/40" />
+          {/* Top-left brand overlay image inside clipped area */}
+          <img
+            src={leftTopBrand}
+            alt="GREEN Infina motif"
+            className="absolute left-0 top-0 w-56 md:w-64 lg:w-72 select-none"
+            draggable={false}
+          />
         </div>
-        <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-sm">
-            <div className="rounded-lg border bg-white text-gray-800 shadow-sm p-6">
-              <div className="flex flex-col space-y-1.5 p-6 pb-4">
-                <h3 className="text-2xl font-semibold leading-none tracking-tight">Sign in to your account</h3>
-                <p className="text-sm text-gray-600">Enter your credentials to access GREEN Infina</p>
+        {/* Copy block (not clipped) */}
+        <div className="relative z-10 flex h-full flex-col items-start justify-center px-6 sm:px-10 lg:pl-28 xl:pl-36 pr-8 md:pr-14 lg:pr-28 text-gray-900">
+          <div className="max-w-[500px] md:max-w-[540px] text-left font-montserrat mt-10 lg:-mt-10 xl:-mt-12">
+            <h2 className="text-[28px] md:text-[30px] lg:text-[32px] leading-[1.25] font-extrabold italic">
+              <span className="font-semibold">Welcome To </span>
+              <span className="text-[#23B14D]">GREEN Infina</span>
+            </h2>
+            <p className="mt-2 text-base md:text-lg font-semibold">
+              <span className="text-[#23B14D]">AI</span>-Powered Solar Design Begins Here.
+            </p>
+            <p className="mt-4 text-[15px] md:text-[16px] lg:text-[17px] leading-relaxed font-medium italic opacity-95">
+              Sign in to access your designs, generate new systems, and unlock the full
+              capabilities of <span className="text-[#23B14D] font-semibold italic">GREEN Infina</span> — the world’s most advanced solar intelligence engine.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Right form panel */}
+      <div className="flex flex-col gap-4 p-6 md:p-10 lg:col-span-5">
+        <div className="flex flex-1 items-start lg:items-center justify-center pt-6 lg:pt-0">
+          <div className="w-full max-w-[860px]">
+            {/* Mobile hero background wedge */}
+            <div className="lg:hidden relative h-40 sm:h-48 mb-6">
+              <div className="absolute inset-0 auth-hero-clip overflow-hidden z-0">
+                <img
+                  src={signinBg}
+                  alt="Sign in background"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-200/50 via-white/50 to-green-200/40" />
+                <img
+                  src={leftTopBrand}
+                  alt="GREEN Infina motif"
+                  className="absolute left-0 top-0 w-40 sm:w-48 select-none"
+                  draggable={false}
+                />
               </div>
-              <div className="p-6 pt-0">
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
-                      {error}
-                    </div>
-                  )}
-                  {successMessage && (
-                    <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
-                      {successMessage}
-                    </div>
-                  )}
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">
-                      Email
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    />
+            </div>
+            {/* Mobile hero copy (only on small screens) */}
+            <div className="lg:hidden mb-6">
+              <div className="text-left font-montserrat">
+                <h2 className="text-[22px] sm:text-[24px] leading-[1.25] font-extrabold italic">
+                  <span className="font-semibold">Welcome To </span>
+                  <span className="text-[#23B14D]">GREEN Infina</span>
+                </h2>
+                <p className="mt-1 text-sm sm:text-base font-semibold">
+                  <span className="text-[#23B14D]">AI</span>-Powered Solar Design Begins Here.
+                </p>
+                <p className="mt-3 text-[14px] leading-relaxed font-medium italic opacity-95">
+                  Sign in to access your designs, generate new systems, and unlock the full
+                  capabilities of <span className="text-[#23B14D] font-semibold italic">GREEN Infina</span> — the world’s most advanced solar intelligence engine.
+                </p>
+              </div>
+            </div>
+            {/* Header block (no card) */}
+            <div className="text-center mb-8 md:mb-10">
+              <h3 className="text-3xl md:text-[34px] font-extrabold tracking-wide uppercase font-montserrat">
+                Sign in to your account
+              </h3>
+              <p className="mt-2 text-sm md:text-base text-gray-700 font-montserrat italic">
+                Enter your credentials to access <span className="text-[#23B14D] font-semibold italic">GREEN Infina</span>
+              </p>
+            </div>
+            <div className="px-2 md:px-0">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">
+                    {error}
                   </div>
-                  <div className="space-y-2">
-                    <label htmlFor="password" className="text-sm font-medium">
-                      Password
-                    </label>
-                    <input
-                      id="password"
-                      type="password"
-                      placeholder="Enter your password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    />
+                )}
+                {successMessage && (
+                  <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
+                    {successMessage}
                   </div>
+                )}
+                <div className="skew-field">
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="E-MAIL ID"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="skew-field-input"
+                  />
+                </div>
+                <div className="skew-field">
+                  <input
+                    id="password"
+                    type="password"
+                    placeholder="PASSWORD"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="skew-field-input"
+                  />
+                </div>
+                <div className="flex items-center justify-end -mt-2">
+                  <label htmlFor="remember-me" className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      id="remember-me"
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-600"
+                    />
+                    Remember me
+                  </label>
+                </div>
+                <div className="flex justify-center">
                   <button
                     type="submit"
-                    className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-green-600 text-white hover:bg-green-700 h-10 px-4 py-2 w-full"
+                    className="cta-gradient-button w-[250px] text-black text-xl font-semibold font-montserrat focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-600"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Signing in..." : "Sign in"}
+                    {isLoading ? 'Signing in...' : 'Login'}
                   </button>
-                  <div className="text-center">
-                    <a
-                      href="/forgot-password"
-                      className="text-sm text-green-600 hover:text-green-700 underline"
-                    >
-                      Forgot your password?
-                    </a>
-                  </div>
-                </form>
-              </div>
+                </div>
+                <div className="text-center">
+                  <a href="/forgot-password" className="text-sm text-[#23B14D] hover:text-green-700 underline font-bold">
+                    Forgot your password?
+                  </a>
+                </div>
+              </form>
             </div>
-            <div className="mt-6 text-center">
-              <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
-                <NavLink
-                  to="/signup"
-                  className="text-green-600 hover:text-green-700 font-medium underline"
-                >
-                  Sign up
+            <div className="mt-6 text-center font-montserrat">
+              <p className="text-sm text-gray-700">
+                Don't have an account?{' '}
+                <NavLink to="/signup" className="text-[#23B14D] hover:text-green-700 font-bold underline">
+                  Signup
                 </NavLink>
               </p>
             </div>
           </div>
         </div>
       </div>
-      <div className="bg-gradient-to-br from-green-100 via-yellow-50 to-green-200 relative hidden lg:block">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center text-gray-800 p-8">
-            <h2 className="text-4xl font-bold mb-4">Welcome to Solar Planning</h2>
-            <p className="text-xl opacity-90">
-              Design sustainable energy solutions with our advanced AI-powered platform
-            </p>
-          </div>
-        </div>
-        <div className="absolute top-8 left-8 right-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-gray-800">
-            <h3 className="font-semibold mb-2">✨ What you'll get:</h3>
-            <ul className="text-sm space-y-2 opacity-90">
-              <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>AI-powered load analysis and solar yield calculations</span></li>
-              <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>Advanced rooftop layout and SLD diagram tools</span></li>
-              <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>Comprehensive bill of materials and project timelines</span></li>
-              <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>Professional download center for all your documents</span></li>
-            </ul>
-          </div>
-        </div>
-        <div className="absolute bottom-8 left-8 right-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-gray-800">
-            <h3 className="font-semibold mb-2">Empower • Envision • Engineer • Evolve</h3>
-            <p className="text-sm opacity-90">
-              Join thousands of solar professionals using GREEN Infina's comprehensive planning tools
-            </p>
-          </div>
+
+      {/* Footer/help - sticky on desktop, stacked on mobile */}
+      <div className="z-30 pb-5 md:pb-5 lg:pl-14 w-full px-4 lg:px-0 lg:absolute lg:inset-x-0 lg:bottom-4">
+        <p className="text-center text-xs sm:text-sm text-gray-700 font-medium font-montserrat">
+          Need help? Contact us at team infina@green.com.pg
+        </p>
+        <div className="hidden sm:flex absolute right-6 bottom-5 md:bottom-5 items-center gap-3">
+          <span className="text-sm font-bold tracking-wide text-gray-800 font-montserrat">A Solution BY</span>
+          <img src={greenLogo} alt="GREEN" className="h-8 w-auto" />
         </div>
       </div>
     </div>

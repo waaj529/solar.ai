@@ -2,13 +2,9 @@ import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../features/auth/services/AuthContext';
 
-interface NavigationProps {
-  currentPage?: string;
-}
-
-const Navigation: React.FC<NavigationProps> = ({ currentPage }) => {
+const Navigation: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
 
   // helper for active nav link classes
   const navClass = ({ isActive }: { isActive: boolean }) =>
@@ -26,11 +22,6 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage }) => {
     <nav className="relative">
       {/* Desktop Navigation */}
       <div className="hidden md:flex justify-end items-center p-4 space-x-6 text-gray-600 font-medium">
-        {currentPage !== 'home' && (
-          <NavLink to="/" className={navClass}>
-            HOME
-          </NavLink>
-        )}
         <NavLink to="/envision" className={navClass}>
           ENVISION
         </NavLink>
@@ -45,7 +36,6 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage }) => {
         </NavLink>
         {isAuthenticated ? (
           <>
-            <span className="text-sm text-green-700 font-semibold">{user?.firstName}</span>
             <button
               onClick={logout}
               className="text-gray-600 hover:text-red-600 transition-colors ml-2"
@@ -105,17 +95,6 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage }) => {
         }`}
       >
         <div className="flex flex-col pt-16 px-6 space-y-6">
-          {currentPage !== 'home' && (
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `block py-2 text-lg font-medium ${isActive ? 'text-green-600 font-semibold' : 'text-gray-600 hover:text-green-600'}`
-              }
-              onClick={closeMenu}
-            >
-              HOME
-            </NavLink>
-          )}
           <NavLink
             to="/envision"
             className={({ isActive }) =>
@@ -154,7 +133,6 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage }) => {
           </NavLink>
           {isAuthenticated ? (
             <>
-              <span className="text-sm text-green-700 font-semibold">{user?.firstName}</span>
               <button
                 onClick={() => {
                   closeMenu();
