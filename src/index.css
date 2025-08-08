@@ -582,6 +582,10 @@ body {
   font-weight: 600;
 }
 
+.content-green {
+  color: var(--content-green);
+}
+
 .hero-heading .content-green {
   color: var(--content-green);
   font-size: clamp(1.25rem, 3vw, 1.5rem);

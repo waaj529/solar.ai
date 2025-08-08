@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../features/auth/services/AuthContext';
+import boltIcon from '@icons/image (202) 2 (1).png';
 
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -143,11 +144,11 @@ const SignIn: React.FC = () => {
         <div className="absolute top-8 left-8 right-8">
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-gray-800">
             <h3 className="font-semibold mb-2">✨ What you'll get:</h3>
-            <ul className="text-sm space-y-1 opacity-90">
-              <li>• AI-powered load analysis and solar yield calculations</li>
-              <li>• Advanced rooftop layout and SLD diagram tools</li>
-              <li>• Comprehensive bill of materials and project timelines</li>
-              <li>• Professional download center for all your documents</li>
+            <ul className="text-sm space-y-2 opacity-90">
+              <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>AI-powered load analysis and solar yield calculations</span></li>
+              <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>Advanced rooftop layout and SLD diagram tools</span></li>
+              <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>Comprehensive bill of materials and project timelines</span></li>
+              <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>Professional download center for all your documents</span></li>
             </ul>
           </div>
         </div>

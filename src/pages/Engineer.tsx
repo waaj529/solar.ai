@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/services/AuthContext';
 import api from '../lib/api';
 import Footer from '../components/Footer';
+import boltIcon from '@icons/image (202) 2 (1).png';
 import leftGraphic from '../assets/ENGINEER.png';
 import verticalGraphic from '../assets/Group 1171277870.png';
 
@@ -158,21 +159,26 @@ const Engineer: React.FC = () => {
         <div className="features-grid grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
           <ul className="feature-list space-y-4">
             <li>
-              <span className="bullet-icon">bolt</span>Natural Language AI Extracts Specs, Locations, Constraints
+              <img src={boltIcon} alt="" className="h-4 w-4 mt-1 mr-2" />
+              Natural Language AI Extracts Specs, Locations, Constraints
             </li>
             <li>
-              <span className="bullet-icon">bolt</span>Weather And Irradiance Are Factored Dynamically
+              <img src={boltIcon} alt="" className="h-4 w-4 mt-1 mr-2" />
+              Weather And Irradiance Are Factored Dynamically
             </li>
             <li>
-              <span className="bullet-icon">bolt</span>Outputs Are Tailored To Delivery Timelines And Sourcing
+              <img src={boltIcon} alt="" className="h-4 w-4 mt-1 mr-2" />
+              Outputs Are Tailored To Delivery Timelines And Sourcing
             </li>
           </ul>
           <ul className="feature-list space-y-4">
             <li>
-              <span className="bullet-icon">bolt</span>Solar Logic Calculates Load, Autonomy, Battery Sizing
+              <img src={boltIcon} alt="" className="h-4 w-4 mt-1 mr-2" />
+              Solar Logic Calculates Load, Autonomy, Battery Sizing
             </li>
             <li>
-              <span className="bullet-icon">bolt</span>Inventory‑Aware Design Adapts In Real Time
+              <img src={boltIcon} alt="" className="h-4 w-4 mt-1 mr-2" />
+              Inventory‑Aware Design Adapts In Real Time
             </li>
           </ul>
         </div>

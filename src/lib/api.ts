@@ -77,13 +77,15 @@ const tokenStorage = new TokenStorage();
 
 // Create axios instance with base configuration
 const getApiBaseUrl = () => {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL;
-  
+  // Default to '/api' so production uses platform proxy (e.g., Netlify) and
+  // development falls back to direct backend connection below.
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api';
+
   // If we're in development and using relative path, use direct HTTP connection
   if (import.meta.env.DEV && baseUrl === '/api') {
     return 'http://75.119.151.238:5001';
   }
-  
+
   return baseUrl;
 };
 
@@ -146,8 +148,9 @@ const refreshToken = async (): Promise<string | null> => {
     const currentToken = getStoredToken();
     if (!currentToken) return null;
 
-    const refreshEndpoint = import.meta.env.VITE_TOKEN_REFRESH_ENDPOINT || '/refresh';
-    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}${refreshEndpoint}`, {}, {
+  const refreshEndpoint = import.meta.env.VITE_TOKEN_REFRESH_ENDPOINT || '/refresh';
+  // Use resolved base URL for refresh to work in both dev and production
+  const response = await axios.post(`${getApiBaseUrl()}${refreshEndpoint}`, {}, {
       headers: {
         'Authorization': `Bearer ${currentToken}`,
         'Content-Type': 'application/json',

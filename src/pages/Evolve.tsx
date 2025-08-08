@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/services/AuthContext';
 import api from '../lib/api';
 import Footer from '../components/Footer';
+import boltIcon from '@icons/image (202) 2 (1).png';
 import leftGraphic from '../assets/Evolve.png';
 import verticalGraphic from '../assets/Group 1171277870.png';
 
@@ -162,25 +163,19 @@ const Evolve: React.FC = () => {
         <div className="features">
           <div className="feature">
             <span className="icon">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 2v11h3v9l7-12h-4l-6-8z" />
-              </svg>
+              <img src={boltIcon} alt="" className="w-5 h-5" />
             </span>
             <span className="text">Fully IP‑Secured And EPC‑Grade</span>
           </div>
           <div className="feature">
             <span className="icon">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 2v11h3v9l7-12h-4l-6-8z" />
-              </svg>
+              <img src={boltIcon} alt="" className="w-5 h-5" />
             </span>
             <span className="text">Engineered By Professionals, Not Platforms</span>
           </div>
           <div className="feature">
             <span className="icon">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 2v11h3v9l7-12h-4l-6-8z" />
-              </svg>
+              <img src={boltIcon} alt="" className="w-5 h-5" />
             </span>
             <span className="text">Scalable, Integrable, Future‑Proof</span>
           </div>

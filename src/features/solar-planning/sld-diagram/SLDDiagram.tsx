@@ -1,6 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../shared/ui/card";
+import { Button } from "../../../shared/ui/button";
 import { Download, RefreshCw } from "lucide-react";
+import boltIcon from "@icons/image (202) 2 (1).png";
 
 export function SLDDiagram() {
   return (
@@ -38,13 +39,13 @@ export function SLDDiagram() {
                 <h3 className="text-lg font-semibold text-foreground">SLD Diagram Generated</h3>
                 <p className="text-muted-foreground">30kW Solar PV System with Grid Connection</p>
               </div>
-              <div className="text-sm text-muted-foreground">
-                <p>• Solar PV Array (30kW)</p>
-                <p>• String Inverters (6 x 5kW)</p>
-                <p>• AC Distribution Panel</p>
-                <p>• Grid Connection Meter</p>
-                <p>• Protection & Isolation Devices</p>
-              </div>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>Solar PV Array (30kW)</span></li>
+                <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>String Inverters (6 x 5kW)</span></li>
+                <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>AC Distribution Panel</span></li>
+                <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>Grid Connection Meter</span></li>
+                <li className="flex items-start gap-2"><img src={boltIcon} alt="" className="h-4 w-4 mt-0.5" /><span>Protection & Isolation Devices</span></li>
+              </ul>
             </div>
           </div>
         </CardContent>

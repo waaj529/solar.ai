@@ -5,6 +5,10 @@ import api from '../lib/api';
 import Footer from '../components/Footer';
 import leftGraphic from '../assets/Empower.png';
 import verticalGraphic from '../assets/Group 1171277870.png';
+import iconSLD from '@icons/Vector.png';
+import iconBOM from '@icons/Vector (1).png';
+import iconProj from '@icons/Vector (2).png';
+import iconLayouts from '@icons/Vector (3).png';
 
 /**
  * Empower page mirrors the EMP0WER marketing page.  It features a
@@ -87,7 +91,7 @@ const Empower: React.FC = () => {
       {/* Search box and tabs */}
       <div className="text-center mt-8 px-4 relative z-10 max-w-2xl mx-auto">
         <h1 className="text-lg md:text-[20px] text-center italic font-semibold font-montserrat">
-          Build A Complete
+          Design A Complete
           <span className="text-green-600 font-bold italic"> Solar System</span> With One Simple Sentence
         </h1>
         <div className="mt-6 flex justify-center">
@@ -96,7 +100,7 @@ const Empower: React.FC = () => {
               <div className="flex items-start">
                 <input
                   type="text"
-                  placeholder="Let's Build Something"
+                  placeholder="Let's Talk Energy"
                   className="flex-1 text-lg italic font-medium text-gray-500 bg-transparent border-none outline-none slanted-text placeholder:italic placeholder:text-gray-500"
                 />
                 <div className="ml-4 flex items-center h-full">
@@ -136,16 +140,16 @@ const Empower: React.FC = () => {
         {/* Navigation tabs */}
         <div className="mt-4 flex justify-center gap-2">
           <div className="tab">
-            <span>Residential Solar</span>
+            <span>Solar Diagram</span>
           </div>
           <div className="tab">
-            <span>Commercial Solar</span>
+            <span>How Do Solar Panels Work?</span>
           </div>
           <div className="tab">
-            <span>Grid‑Tie Solar</span>
+            <span>Solar CAD Diagrams</span>
           </div>
           <div className="tab">
-            <span>Off‑Grid Solar</span>
+            <span>Benefits Of Using Solar Energy</span>
           </div>
         </div>
       </div>
@@ -160,41 +164,33 @@ const Empower: React.FC = () => {
           <span className="font-bold text-green-600">EPC</span> Professionals Actually Use. Not Mockups. Not Estimates.
           <br />Real, Build‑Ready Documents.
         </p>
-        <div className="features grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16 px-4">
-          <div className="feature flex gap-4 items-start">
-            <span className="material-icons feature-icon">straighten</span>
-            <div className="feature-content">
-              <div className="feature-title font-semibold italic">SLDs (Single Line Diagrams)</div>
-              <div className="feature-desc italic text-gray-500">
-                Accurate And Export‑Ready In PDF And SVG
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 max-w-5xl mx-auto mb-14 px-4">
+          <div className="flex items-start gap-4">
+            <img src={iconSLD} alt="SLDs" className="h-5 w-5 md:h-6 md:w-6 mt-1 flex-shrink-0" />
+            <div>
+              <h3 className="text-base md:text-lg font-semibold italic leading-snug whitespace-nowrap">SLDs (Single Line Diagrams)</h3>
+              <p className="text-sm md:text-base italic text-gray-500 mt-1 whitespace-nowrap">Accurate And Export‑Ready In PDF And SVG</p>
             </div>
           </div>
-          <div className="feature flex gap-4 items-start">
-            <span className="material-icons feature-icon">description</span>
-            <div className="feature-content">
-              <div className="feature-title font-semibold italic">BOM (Bill Of Materials)</div>
-              <div className="feature-desc italic text-gray-500">
-                Fully Itemized, Real‑Time Spec And Quantity
-              </div>
+          <div className="flex items-start gap-4">
+            <img src={iconBOM} alt="BOM" className="h-5 w-5 md:h-6 md:w-6 mt-1 flex-shrink-0" />
+            <div>
+              <h3 className="text-base md:text-lg font-semibold italic leading-snug whitespace-nowrap">BOM (Bill Of Materials)</h3>
+              <p className="text-sm md:text-base italic text-gray-500 mt-1 whitespace-nowrap">Fully Itemized, Real‑Time Spec And Quantity</p>
             </div>
           </div>
-          <div className="feature flex gap-4 items-start">
-            <span className="material-icons feature-icon">view_in_ar</span>
-            <div className="feature-content">
-              <div className="feature-title font-semibold italic">Layouts</div>
-              <div className="feature-desc italic text-gray-500">
-                Rooftop Or Site‑Rendered CAD Visuals In DXF Or PNG
-              </div>
+          <div className="flex items-start gap-4">
+            <img src={iconLayouts} alt="Layouts" className="h-5 w-5 md:h-6 md:w-6 mt-1 flex-shrink-0" />
+            <div>
+              <h3 className="text-base md:text-lg font-semibold italic leading-snug whitespace-nowrap">Layouts</h3>
+              <p className="text-sm md:text-base italic text-gray-500 mt-1 whitespace-nowrap">Rooftop Or Site‑Rendered CAD Visuals In DXF Or PNG</p>
             </div>
           </div>
-          <div className="feature flex gap-4 items-start">
-            <span className="material-icons feature-icon">bar_chart</span>
-            <div className="feature-content">
-              <div className="feature-title font-semibold italic">Projections</div>
-              <div className="feature-desc italic text-gray-500">
-                Timeline, Performance Yield, Lead‑Time Calculation
-              </div>
+          <div className="flex items-start gap-4">
+            <img src={iconProj} alt="Projections" className="h-5 w-5 md:h-6 md:w-6 mt-1 flex-shrink-0" />
+            <div>
+              <h3 className="text-base md:text-lg font-semibold italic leading-snug whitespace-nowrap">Projections</h3>
+              <p className="text-sm md:text-base italic text-gray-500 mt-1 whitespace-nowrap">Timeline, Performance Yield, Lead‑Time Calculation</p>
             </div>
           </div>
         </div>
@@ -208,25 +204,7 @@ const Empower: React.FC = () => {
           </div>
         </div>
       </section>
-      {/* Output artefacts section */}
-      <section className="mt-8 relative z-10 px-4">
-        <h1 className="text-center text-2xl md:text-3xl italic font-medium mb-6">
-          Output artefacts to <span className="text-green-600 font-semibold">EMPOWER</span> your build.
-        </h1>
-        <div className="output-grid grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <ul className="output-list space-y-3">
-            <li>• Load Analysis Report</li>
-            <li>• Solar Yield Calculations</li>
-            <li>• Single‑Line Diagram (SLD)</li>
-            <li>• Bill Of Materials</li>
-          </ul>
-          <ul className="output-list space-y-3">
-            <li>• Rooftop Layout</li>
-            <li>• Project Timeline</li>
-            <li>• Download Center</li>
-          </ul>
-        </div>
-      </section>
+      {/* Output artefacts section removed as requested */}
 
       {/* Final tagline */}
       <div className="mt-8 text-center text-lg md:text-lg font-semibold relative z-10 mb-4">
