@@ -95,7 +95,9 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   // Add timeout for better error handling
-  timeout: 15000, // Increased timeout for proxy requests
+  // Allow a longer default timeout since some endpoints (like NLP load analysis)
+  // may take longer on the backend. Can be overridden per-request.
+  timeout: parseInt(import.meta.env.VITE_HTTP_TIMEOUT_MS || '45000'),
 });
 
 // Token management utilities
@@ -193,7 +195,10 @@ api.interceptors.request.use(
     let token = getStoredToken();
     
     if (token && isTokenExpired(token)) {
-      console.log('Token expiring soon, attempting refresh...');
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.log('Token expiring soon, attempting refresh...');
+      }
       const newToken = await refreshToken();
       token = newToken || token;
     }
@@ -319,3 +324,75 @@ export const saveQuestionAndAnswers = async (
 };
 
 export default api;
+
+// -------------------------------
+// NLP Load Analysis helpers
+// -------------------------------
+
+export interface LoadAnalysisParams {
+  user_id: string;
+  nlp_id: string;
+}
+
+export interface LoadAnalysisResponse {
+  status?: string;
+  message?: string;
+  load_id?: string;
+  [key: string]: unknown;
+}
+
+export const runLoadAnalysis = async (
+  params: LoadAnalysisParams
+): Promise<LoadAnalysisResponse> => {
+  const endpoint = import.meta.env.VITE_NLP_LOAD_ANALYSIS_ENDPOINT || '/nlp/load_analysis';
+
+  const payload: LoadAnalysisParams = {
+    user_id: String(params.user_id),
+    nlp_id: String(params.nlp_id),
+  };
+
+  if (import.meta.env.DEV) {
+    try {
+      JSON.stringify(payload);
+      // eslint-disable-next-line no-console
+      console.debug('POST', endpoint, 'payload →', payload);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('Invalid payload for runLoadAnalysis:', e);
+    }
+  }
+
+  // Give this call extra time since the server may perform NLP + DB aggregation
+  const response = await api.post(endpoint, payload, {
+    timeout: parseInt(import.meta.env.VITE_LOAD_ANALYSIS_TIMEOUT_MS || '90000'),
+  });
+  return response.data as LoadAnalysisResponse;
+};
+
+export interface GetLoadAnalysisParams {
+  user_id: string;
+  load_id: string;
+}
+
+export const getLoadAnalysis = async (
+  params: GetLoadAnalysisParams
+): Promise<unknown> => {
+  const base = import.meta.env.VITE_NLP_LOAD_ANALYSIS_GET_BASE || '/nlp/load_analysis';
+  // Build an absolute URL so we definitely hit the FastAPI host even when a proxy is configured
+  const url = `${getApiBaseUrl()}${base}/${encodeURIComponent(params.user_id)}/${encodeURIComponent(params.load_id)}`;
+
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.debug('GET', url);
+  }
+
+  // Use absolute URL; axios will ignore baseURL when provided an absolute URL
+  const response = await api.get(url, {
+    timeout: parseInt(import.meta.env.VITE_LOAD_ANALYSIS_TIMEOUT_MS || '60000'),
+  });
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.debug('GET response', url, response.data);
+  }
+  return response.data;
+};

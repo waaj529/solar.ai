@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { ModuleSidebar } from "../components/ModuleSidebar";
 import { SidebarProvider, SidebarTrigger } from "../shared/ui/sidebar";
@@ -10,8 +10,37 @@ import { RooftopLayout } from "../components/modules/RooftopLayout";
 import { ProjectTimeline } from "../components/modules/ProjectTimeline";
 import { DownloadCenter } from "../components/modules/DownloadCenter";
 
+import { runLoadAnalysis } from "../lib/api";
+
 const Dashboard: React.FC = () => {
   const [activeModule, setActiveModule] = useState("load-analysis");
+
+  // When arriving on dashboard, attempt to run load analysis if we have
+  // a recent NLP id and a user id stored.
+  useEffect(() => {
+    const userId = localStorage.getItem('encrypted_user_id') || localStorage.getItem('anon_user_id') || '';
+    const nlpId = localStorage.getItem('latest_nlp_id') || '';
+    const status = localStorage.getItem(`load_triggered_${nlpId}`);
+    // Only self-trigger if Envision didn't already start it
+    if (userId && nlpId && status !== 'done' && status !== 'pending') {
+      (async () => {
+        try {
+          const res = await runLoadAnalysis({ user_id: userId, nlp_id: nlpId });
+          // Persist returned load_id for GET usage
+          const loadId = (res as any)?.load_id;
+          if (loadId) {
+            localStorage.setItem('latest_load_id', String(loadId));
+          }
+          localStorage.setItem(`load_triggered_${nlpId}`, 'done');
+          // eslint-disable-next-line no-console
+          console.log('Dashboard → load analysis triggered:', res);
+        } catch (e) {
+          // eslint-disable-next-line no-console
+          console.error('Dashboard → load analysis trigger failed:', e);
+        }
+      })();
+    }
+  }, []);
 
   const renderModule = () => {
     switch (activeModule) {

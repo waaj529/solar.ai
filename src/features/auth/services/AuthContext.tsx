@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import api, { getStoredToken, setStoredToken, removeStoredToken } from '../../../lib/api';
+import api, { getStoredToken, setStoredToken, removeStoredToken, getUserIdFromToken } from '../../../lib/api';
 import { User, SignupData, AuthResponse, AuthContextType } from '../../../types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,8 +57,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (token) {
         setStoredToken(token);
         console.log('Token stored successfully');
+        // Try to persist a user identifier from the token if backend doesn't return user_id directly
+        try {
+          const uidFromToken = getUserIdFromToken(token);
+          if (uidFromToken && !localStorage.getItem('encrypted_user_id')) {
+            localStorage.setItem('encrypted_user_id', String(uidFromToken));
+          }
+        } catch {}
       } else {
         console.warn('No token found in login response');
+      }
+
+      // Persist user_id if provided (encrypted) for later API usage
+      const encryptedUserId = responseData.user_id || responseData.id;
+      if (encryptedUserId) {
+        localStorage.setItem('encrypted_user_id', String(encryptedUserId));
       }
       
       // Create user object from response data
@@ -85,7 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (userData: SignupData): Promise<boolean> => {
     setIsLoading(true);
     try {
-      await api.post<AuthResponse>('/signup', {
+      const resp = await api.post<AuthResponse>('/signup', {
         name: `${userData.firstName} ${userData.lastName}`,
         email: userData.email,
         password: userData.password,
@@ -95,6 +108,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Signup successful - but don't automatically log the user in
       // User will need to sign in separately with their credentials
       setIsLoading(false);
+
+      // Capture encrypted user_id from signup response (if FastAPI returns it)
+      try {
+        const returned = resp?.data as AuthResponse;
+        if (returned?.user_id || returned?.id) {
+          localStorage.setItem('encrypted_user_id', String(returned.user_id || returned.id));
+        }
+      } catch {}
       return true;
     } catch (error: any) {
       console.error('Signup error:', error);

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/services/AuthContext';
-import api, { saveQuestionAndAnswers as saveQAFromLib, getUserIdFromStoredToken, getStoredToken } from '../lib/api';
+import api, { saveQuestionAndAnswers as saveQAFromLib, getUserIdFromStoredToken, getStoredToken, runLoadAnalysis } from '../lib/api';
 import Footer from '../components/Footer';
 import Navigation from '../components/Navigation';
 import leftGraphic from '../assets/Envision.png';
@@ -23,6 +23,8 @@ const Envision: React.FC = () => {
   const [clarifications, setClarifications] = useState<string[]>([]);
   const [answers, setAnswers] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [isFinishing, setIsFinishing] = useState<boolean>(false);
+  const isFinishingRef = useRef(false);
 
   // Local API helpers
 
@@ -75,6 +77,9 @@ const Envision: React.FC = () => {
 
   const ensureUserId = (): string => {
     const isObjectId = (v: string) => /^[a-f0-9]{24}$/i.test(v);
+    // Prefer encrypted user id persisted from signup/login
+    const encrypted = localStorage.getItem('encrypted_user_id');
+    if (encrypted && isObjectId(encrypted)) return encrypted;
     if (user?.id) {
       const candidate = String(user.id);
       if (isObjectId(candidate)) return candidate;
@@ -126,10 +131,14 @@ const Envision: React.FC = () => {
     try {
       const uid = ensureUserId();
       const promptToSend = (query.trim() || basePrompt).trim();
+      const normalizedAnswers = (answers || [])
+        .map((a) => String(a || '').trim())
+        .filter((a) => a.length > 0);
+
       const payload = {
         user_id: uid,
         prompt: promptToSend,
-        answers: answers.map((a) => a.trim()),
+        answers: normalizedAnswers,
       };
 
       // Debug logs to mirror the expected successful console output
@@ -190,20 +199,46 @@ const Envision: React.FC = () => {
     clarifications.length > 0 && currentIndex === clarifications.length - 1;
 
   const handleNext = async () => {
+    if (isFinishingRef.current) return; // guard against double-invoke
     // Require a non-empty answer
-    const currentAnswer = answers[currentIndex]?.trim() || '';
-    if (!currentAnswer) return;
+    const currentAnswer = (answers[currentIndex] ?? '').trim();
+    // Require answer for intermediate steps, but allow finishing with blank last answer
+    if (!isLastQuestion && !currentAnswer) return;
 
     if (isLastQuestion) {
+      isFinishingRef.current = true;
+      setIsFinishing(true);
       const nlpId = await handleSubmit();
+      const userId = ensureUserId();
       if (nlpId) {
         localStorage.setItem('latest_nlp_id', nlpId);
-        // eslint-disable-next-line no-console
-        console.log('✅ Q&A answers saved successfully, redirecting to dashboard...');
+        // Guard against duplicate triggers (StrictMode, rapid mounts)
+        const triggerKey = `load_triggered_${nlpId}`;
+        if (!localStorage.getItem(triggerKey)) {
+          localStorage.setItem(triggerKey, 'pending');
+          // Attempt to run load analysis immediately before navigation
+          try {
+            const res = await runLoadAnalysis({ user_id: userId, nlp_id: nlpId });
+            // Persist load_id so dashboard/tab can fetch details
+            const loadId = (res as any)?.load_id;
+            if (loadId) {
+              localStorage.setItem('latest_load_id', String(loadId));
+            }
+            localStorage.setItem(triggerKey, 'done');
+            // eslint-disable-next-line no-console
+            console.log('✅ Load analysis started:', res);
+          } catch (e) {
+            localStorage.removeItem(triggerKey);
+            // eslint-disable-next-line no-console
+            console.error('Load analysis failed to start:', e);
+          }
+        }
       }
       // eslint-disable-next-line no-console
       console.log('🚀 Navigating to dashboard...');
       navigate('/dashboard');
+      setIsFinishing(false);
+      isFinishingRef.current = false;
       return;
     }
 
@@ -302,8 +337,11 @@ const Envision: React.FC = () => {
                         type="text"
                         value={answers[currentIndex] || ''}
                         onChange={(e) => handleAnswerChange(currentIndex, e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleNext();
+                      onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (!isFinishingRef.current) handleNext();
+                          }
                         }}
                         placeholder="Your answer"
                         className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -328,7 +366,7 @@ const Envision: React.FC = () => {
                     <button
                       type="button"
                       onClick={handleNext}
-                      disabled={!((answers[currentIndex] || '').trim().length)}
+                      disabled={isFinishing || (!isLastQuestion && !((answers[currentIndex] || '').trim().length))}
                       className="inline-flex items-center gap-2 rounded-md bg-green-600 text-white text-sm px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLastQuestion ? 'Finish' : 'Next'}

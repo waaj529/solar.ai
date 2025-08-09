@@ -36,6 +36,8 @@ const SignIn: React.FC = () => {
     const success = await login(email, password);
     
     if (success) {
+      // Persist a best-effort user id if present in storage from login
+      // The AuthContext stores encrypted_user_id when available
       // Navigate to the intended destination or home page
       navigate(from, { replace: true });
     } else {
