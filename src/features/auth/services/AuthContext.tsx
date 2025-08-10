@@ -75,11 +75,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       // Create user object from response data
+      // If backend doesn't provide a proper last name and we previously captured it during signup,
+      // use the stored signup name as a fallback to avoid showing "Demo".
+      let fallbackFirst = '';
+      let fallbackLast = '';
+      try {
+        const raw = localStorage.getItem('last_signup_name');
+        if (raw) {
+          const parsed = JSON.parse(raw) as { firstName?: string; lastName?: string };
+          fallbackFirst = parsed.firstName || '';
+          fallbackLast = parsed.lastName || '';
+        }
+      } catch {}
+
+      const computedFirst = responseData.firstName || responseData.first_name || responseData.name?.split(' ')[0] || fallbackFirst || email.split('@')[0] || 'User';
+      const rawLast = responseData.lastName || responseData.last_name || responseData.name?.split(' ')[1] || '';
+      const computedLast = rawLast && rawLast !== 'Demo' ? rawLast : (fallbackLast || '');
+
       const userData: User = {
         id: responseData.id || responseData.user_id || Date.now().toString(),
         email: responseData.email || email,
-        firstName: responseData.firstName || responseData.first_name || responseData.name?.split(' ')[0] || email.split('@')[0] || 'User',
-        lastName: responseData.lastName || responseData.last_name || responseData.name?.split(' ')[1] || 'Demo'
+        firstName: computedFirst,
+        lastName: computedLast
       };
       
       setUser(userData);

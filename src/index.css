@@ -431,6 +431,60 @@ body {
   font-weight: bold;
 }
 
+  /* Subtle brand gradient text + entry animation used on Profile welcome */
+  .text-gradient-brand {
+    background: linear-gradient(90deg, #23B14D 0%, #FFE500 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  @keyframes fade-slide-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-slide-up {
+    animation: fade-slide-up 500ms ease-out both;
+  }
+  .animation-delay-150 { animation-delay: 150ms; }
+  .animation-delay-300 { animation-delay: 300ms; }
+
+  /* Welcome overlay animations */
+  @keyframes overlay-fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .animate-overlay-fade { animation: overlay-fade 700ms ease-out both; }
+
+  /* In-out variant: fade in, hold, then fade out smoothly */
+  @keyframes overlay-in-out {
+    0% { opacity: 0; }
+    15% { opacity: 1; }
+    85% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .animate-overlay-in-out { animation: overlay-in-out 10000ms ease-in-out both; }
+
+  /* Minimal animate.css subset for slideInLeft effect */
+  .animate__animated { animation-duration: 1000ms; animation-fill-mode: both; }
+  .animate__slow { animation-duration: 2000ms; }
+  .animate__slower { animation-duration: 3500ms; }
+  .animate__verySlow { animation-duration: 5000ms; }
+  @keyframes animate__slideInLeft {
+    from { transform: translate3d(-100%, 0, 0); visibility: visible; opacity: 0; }
+    60% { opacity: 1; }
+    to { transform: translate3d(0, 0, 0); opacity: 1; }
+  }
+  .animate__slideInLeft { animation-name: animate__slideInLeft; }
+
+  @keyframes word-slide-up {
+    0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+    60% { opacity: 1; transform: translateY(0) scale(1.0); }
+    100% { opacity: 1; transform: translateY(0) scale(1.0); }
+  }
+  .animate-word-slide-up { animation: word-slide-up 1200ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .animation-delay-600 { animation-delay: 600ms; }
+
 /* Responsive divider container */
 .info-divider {
   width: 2px;

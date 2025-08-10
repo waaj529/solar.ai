@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../features/auth/services/AuthContext';
+import UserProfileMenu from '../components/UserProfileMenu';
 import Footer from '../components/Footer';
 import leftGraphic from '../assets/GREEN Infina.png';
 import verticalGraphic from '../assets/Group 1171277870.png';
@@ -12,6 +14,7 @@ import verticalGraphic from '../assets/Group 1171277870.png';
  */
 const Home: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  useAuth();
   
   // helper for active nav link classes
   const navClass = ({ isActive }: { isActive: boolean }) =>
@@ -43,9 +46,8 @@ const Home: React.FC = () => {
           <NavLink to="/evolve" className={navClass}>
             EVOLVE
           </NavLink>
-          <NavLink to="/signout" className="text-gray-600 hover:text-green-600">
-            LOG OUT
-          </NavLink>
+          {/** Replace logout with profile menu */}
+          <UserProfileMenu />
         </div>
 
         {/* Mobile Navigation Header */}
@@ -132,13 +134,9 @@ const Home: React.FC = () => {
             >
               EVOLVE
             </NavLink>
-            <NavLink
-              to="/signout"
-              className="block py-3 text-lg font-medium text-gray-600 hover:text-green-600 touch-manipulation"
-              onClick={closeMenu}
-            >
-              LOG OUT
-            </NavLink>
+            <div className="px-2">
+              <UserProfileMenu className="w-full justify-start" />
+            </div>
           </div>
         </div>
       </nav>

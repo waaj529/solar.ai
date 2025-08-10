@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../features/auth/services/AuthContext';
+import UserProfileMenu from './UserProfileMenu';
 
 const Navigation: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   // helper for active nav link classes
   const navClass = ({ isActive }: { isActive: boolean }) =>
@@ -35,14 +36,7 @@ const Navigation: React.FC = () => {
           EVOLVE
         </NavLink>
         {isAuthenticated ? (
-          <>
-            <button
-              onClick={logout}
-              className="text-gray-600 hover:text-red-600 transition-colors ml-2"
-            >
-              SIGN OUT
-            </button>
-          </>
+          <UserProfileMenu />
         ) : (
           <NavLink to="/signin" className="text-gray-600 hover:text-green-600">
             SIGN IN
@@ -132,17 +126,9 @@ const Navigation: React.FC = () => {
             EVOLVE
           </NavLink>
           {isAuthenticated ? (
-            <>
-              <button
-                onClick={() => {
-                  closeMenu();
-                  logout();
-                }}
-                className="block py-2 text-lg font-medium text-red-600 hover:text-red-700 text-left"
-              >
-                SIGN OUT
-              </button>
-            </>
+            <div className="px-2">
+              <UserProfileMenu className="w-full justify-start" />
+            </div>
           ) : (
             <NavLink
               to="/signin"

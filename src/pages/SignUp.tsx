@@ -29,13 +29,18 @@ const SignUp: React.FC = () => {
     
     if (success) {
       setSuccessMessage('Account created successfully! Please sign in with your credentials.');
+      // Persist the signup name so we can greet the user even if backend doesn't return names on login
+      try {
+        localStorage.setItem('last_signup_name', JSON.stringify({ firstName, lastName }));
+      } catch {}
       // Wait a moment to show the success message, then redirect to sign in
       setTimeout(() => {
         navigate('/signin', { 
           replace: true,
           state: { 
             message: 'Account created successfully! Please sign in with your credentials.',
-            email: email // Pre-fill email on sign in page
+            email: email, // Pre-fill email on sign in page
+            signupName: { firstName, lastName }
           }
         });
       }, 2000);

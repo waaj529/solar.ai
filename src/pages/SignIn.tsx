@@ -16,15 +16,22 @@ const SignIn: React.FC = () => {
   const location = useLocation();
 
   // Get the page user was trying to access before being redirected to signin
-  const from = location.state?.from?.pathname || '/';
+  // Always land on Profile after login (consistent UX)
+  const postLoginPath = '/profile';
 
-  // Handle success message and email pre-fill from signup
+  // Handle success message and email/name pre-fill from signup
   useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
     }
     if (location.state?.email) {
       setEmail(location.state.email);
+    }
+    // If coming directly from SignUp, persist the name so Profile can greet
+    if (location.state?.signupName) {
+      try {
+        localStorage.setItem('last_signup_name', JSON.stringify(location.state.signupName));
+      } catch {}
     }
   }, [location.state]);
 
@@ -34,12 +41,8 @@ const SignIn: React.FC = () => {
     setSuccessMessage('');
     
     const success = await login(email, password);
-    
     if (success) {
-      // Persist a best-effort user id if present in storage from login
-      // The AuthContext stores encrypted_user_id when available
-      // Navigate to the intended destination or home page
-      navigate(from, { replace: true });
+      navigate(postLoginPath, { replace: true, state: { showWelcomeOverlay: true } });
     } else {
       setError('Invalid email or password. Please try again.');
     }

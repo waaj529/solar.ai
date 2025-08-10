@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink } from 'react-router-dom';
 import { ModuleSidebar } from "../components/ModuleSidebar";
 import { SidebarProvider, SidebarTrigger } from "../shared/ui/sidebar";
 import { LoadAnalysis } from "../components/modules/LoadAnalysis";
@@ -13,7 +12,10 @@ import { DownloadCenter } from "../components/modules/DownloadCenter";
 import { runLoadAnalysis } from "../lib/api";
 
 const Dashboard: React.FC = () => {
-  const [activeModule, setActiveModule] = useState("load-analysis");
+  const [activeModule, setActiveModule] = useState(() => {
+    const stored = localStorage.getItem('active_dashboard_module');
+    return stored || "load-analysis";
+  });
 
   // When arriving on dashboard, attempt to run load analysis if we have
   // a recent NLP id and a user id stored.
@@ -41,6 +43,13 @@ const Dashboard: React.FC = () => {
       })();
     }
   }, []);
+
+  // Persist the currently active module so other pages (e.g., Profile) can deep-link
+  useEffect(() => {
+    try {
+      localStorage.setItem('active_dashboard_module', activeModule);
+    } catch {}
+  }, [activeModule]);
 
   const renderModule = () => {
     switch (activeModule) {
@@ -76,19 +85,7 @@ const Dashboard: React.FC = () => {
         <div className="fixed top-2 left-2 z-50 md:hidden">
           <SidebarTrigger className="h-9 w-9 rounded-lg border bg-white/90 backdrop-blur-sm shadow-sm" />
         </div>
-        {/* Back to main site navigation - responsive positioning */}
-        <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-50">
-          <NavLink
-            to="/"
-            className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1 sm:py-2 bg-white/90 backdrop-blur-sm rounded-lg border shadow-sm text-gray-700 hover:text-green-600 font-medium transition-colors text-xs sm:text-sm"
-          >
-            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            <span className="hidden sm:inline">Back to Main Site</span>
-            <span className="sm:hidden">Back</span>
-          </NavLink>
-        </div>
+        {/* Removed top-right Back to Main Site button; Home entry added in sidebar */}
 
         <ModuleSidebar
           activeModule={activeModule}
