@@ -389,10 +389,89 @@ export const getLoadAnalysis = async (
   // Use absolute URL; axios will ignore baseURL when provided an absolute URL
   const response = await api.get(url, {
     timeout: parseInt(import.meta.env.VITE_LOAD_ANALYSIS_TIMEOUT_MS || '60000'),
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+    },
   });
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console
     console.debug('GET response', url, response.data);
   }
   return response.data;
+};
+
+// -------------------------------
+// Combine Data + Weather helpers
+// -------------------------------
+
+export interface CombineDataResponse {
+  inserted_id?: string;
+  [key: string]: unknown;
+}
+
+export const combineDataByDocId = async (
+  docId: string
+): Promise<CombineDataResponse> => {
+  const base = import.meta.env.VITE_COMBINE_DATA_BASE || '/combine-data';
+  const url = `${getApiBaseUrl()}${base}/${encodeURIComponent(String(docId))}`;
+
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.debug('GET', url);
+  }
+
+  const response = await api.get(url, {
+    // Allow more time; backend may take longer to aggregate
+    timeout: parseInt(import.meta.env.VITE_YIELD_TIMEOUT_MS || import.meta.env.VITE_HTTP_TIMEOUT_MS || '90000'),
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+    },
+  });
+  return response.data as CombineDataResponse;
+};
+
+export interface WeatherResponse {
+  _id?: string;
+  systemAssumptions?: {
+    location?: string;
+    peakSunHours_monthly_used_for_estimate?: Record<string, number>;
+    [key: string]: unknown;
+  };
+  annualSummary?: {
+    annual_kWh_from_PV?: number;
+    average_daily_kWh_from_PV?: number;
+    daily_consumption_kWh?: number;
+    surplus_or_deficit_daily_kWh?: number;
+    [key: string]: unknown;
+  };
+  monthlyGeneration_kWh?: Array<{
+    month: string;
+    days?: number;
+    daily_kWh_from_PV?: number;
+    monthly_kWh_from_PV?: number;
+  }>;
+  [key: string]: unknown;
+}
+
+export const getWeatherByDocId = async (
+  docId: string
+): Promise<WeatherResponse> => {
+  const base = import.meta.env.VITE_WEATHER_BASE || '/weather';
+  const url = `${getApiBaseUrl()}${base}/${encodeURIComponent(String(docId))}`;
+
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.debug('GET', url);
+  }
+
+  const response = await api.get(url, {
+    timeout: parseInt(import.meta.env.VITE_YIELD_TIMEOUT_MS || import.meta.env.VITE_HTTP_TIMEOUT_MS || '90000'),
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+    },
+  });
+  return response.data as WeatherResponse;
 };

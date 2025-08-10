@@ -6,6 +6,7 @@ import Navigation from '../components/Navigation';
 import boltIcon from '@icons/image (202) 2 (1).png';
 import leftGraphic from '../assets/ENGINEER.png';
 import verticalGraphic from '../assets/Group 1171277870.png';
+import ClarifyWizard from '../components/ClarifyWizard';
 
 /**
  * Engineer page replicates the Engineer marketing page.  It shares the
@@ -75,7 +76,7 @@ const Engineer: React.FC = () => {
   };
 
   return (
-    <main className="relative overflow-x-hidden">
+    <main className="relative overflow-x-hidden w-full min-h-screen">
       {/* Global Navigation (responsive) */}
       <Navigation />
 
@@ -83,12 +84,12 @@ const Engineer: React.FC = () => {
       <img
         src={leftGraphic}
         alt="Engineer graphic"
-        className="absolute top-72 left-20 h-96 hidden md:block"
+        className="absolute top-72 left-20 h-96 hidden xl:block pointer-events-none"
       />
       <img
         src={verticalGraphic}
         alt="Vertical text graphic"
-        className="absolute top-0 left-0 h-[30rem] w-auto hidden md:block"
+        className="absolute top-0 left-0 h-[30rem] w-auto hidden xl:block pointer-events-none"
       />
 
       {/* Search and tabs */}
@@ -98,50 +99,7 @@ const Engineer: React.FC = () => {
           <span className="text-green-600 font-bold italic"> Solar System</span> With One Simple Sentence
         </h1>
         <div className="mt-6 flex justify-center">
-          <div className="relative w-full max-w-2xl">
-            <div className="slanted-box px-8 pt-6 pb-3">
-              <div className="flex items-start">
-                <input
-                  type="text"
-                  placeholder="Let's Talk Energy"
-                  className="flex-1 text-lg italic font-medium text-gray-500 bg-transparent border-none outline-none slanted-text placeholder:italic placeholder:text-gray-500"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleEnergyIconClick();
-                  }}
-                />
-                <div className="ml-4 flex items-center h-full">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-10 w-10 text-yellow-400 cursor-pointer hover:text-green-600 transition-colors duration-200"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    onClick={handleEnergyIconClick}
-                  >
-                    <title>Connect to Dashboard</title>
-                    <polygon
-                      points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
-                      fill="#D1FF3A"
-                      stroke="#B6E51D"
-                      strokeWidth="1.5"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 mt-4 ml-1">
-                <span className="material-icons h-7 w-7 text-gray-400 hover:text-green-600 hover:shadow-lg transition cursor-pointer">
-                  mic
-                </span>
-                <span className="material-icons h-6 w-6 text-gray-400 hover:text-green-600 cursor-pointer">
-                  image
-                </span>
-                <span className="material-icons h-6 w-6 text-gray-400 hover:text-green-600 cursor-pointer">
-                  attach_file
-                </span>
-              </div>
-            </div>
-          </div>
+          <ClarifyWizard afterFinishNavigateTo="/dashboard" />
         </div>
         <div className="mt-4 flex justify-center gap-2">
           <div className="tab">

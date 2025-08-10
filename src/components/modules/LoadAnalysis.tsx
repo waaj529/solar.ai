@@ -181,7 +181,7 @@ export function LoadAnalysis() {
       </div>
 
       {/* Summary cards - responsive grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2 sm:pb-3">
             <CardTitle className="text-primary text-sm sm:text-base">Peak Continuous Load</CardTitle>
@@ -210,7 +210,21 @@ export function LoadAnalysis() {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-lg transition-shadow sm:col-span-2 lg:col-span-1">
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-primary text-sm sm:text-base">Estimated Surge Load</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            {loading && !data ? (
+              <Skeleton className="h-8 w-28" />
+            ) : (
+              <div className="text-2xl sm:text-3xl lg:text-4xl font-bold">{formatNum(summary.estimatedSurgeLoad_kW, 'kW')}</div>
+            )}
+            <p className="text-xs sm:text-sm text-muted-foreground">Estimated maximum surge demand</p>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="pb-2 sm:pb-3">
             <CardTitle className="text-primary text-sm sm:text-base">PV Array Size</CardTitle>
           </CardHeader>
