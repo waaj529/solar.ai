@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api, { getUserIdFromStoredToken, runLoadAnalysis } from '../lib/api';
+import React from 'react';
 import Footer from '../components/Footer';
 import Navigation from '../components/Navigation';
 import boltIcon from '@icons/image (202) 2 (1).png';
@@ -14,66 +12,6 @@ import ClarifyWizard from '../components/ClarifyWizard';
  * description of the Solar AI core and two columns of bullet points.
  */
 const Engineer: React.FC = () => {
-  const navigate = useNavigate();
-  const [query, setQuery] = useState('');
-
-  const ensureUserId = (): string => {
-    const isObjectId = (v: string) => /^[a-f0-9]{24}$/i.test(v);
-    const encrypted = localStorage.getItem('encrypted_user_id');
-    if (encrypted && isObjectId(encrypted)) return encrypted;
-    const tokenUserId = getUserIdFromStoredToken();
-    if (tokenUserId && isObjectId(String(tokenUserId))) return String(tokenUserId);
-    let anon = localStorage.getItem('anon_user_id');
-    if (!anon) {
-      const getHex = (len: number) => {
-        const bytes = new Uint8Array(len / 2);
-        crypto.getRandomValues(bytes);
-        return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
-      };
-      anon = getHex(24);
-      localStorage.setItem('anon_user_id', anon);
-    }
-    if (!/^[a-f0-9]{24}$/i.test(anon)) {
-      const regen = anon.slice(0, 24).padEnd(24, '0');
-      localStorage.setItem('anon_user_id', regen);
-      return regen;
-    }
-    return anon;
-  };
-
-  // Handle energy icon click - call dashboard API and navigate to dashboard
-  const handleEnergyIconClick = async () => {
-    try {
-      const userId = ensureUserId();
-      const nlpId = localStorage.getItem('latest_nlp_id') || '';
-      if (nlpId) {
-        const triggerKey = `load_triggered_${nlpId}`;
-        if (!localStorage.getItem(triggerKey)) {
-          localStorage.setItem(triggerKey, 'pending');
-          try {
-            const res = await runLoadAnalysis({ user_id: userId, nlp_id: nlpId });
-            const loadId = (res as any)?.load_id;
-            if (loadId) localStorage.setItem('latest_load_id', String(loadId));
-            localStorage.setItem(triggerKey, 'done');
-            if (import.meta.env.DEV) console.log('Engineer → load analysis started:', res);
-          } catch (e) {
-            localStorage.removeItem(triggerKey);
-            if (import.meta.env.DEV) console.error('Engineer → load analysis failed to start:', e);
-          }
-        }
-      }
-      void api.get('/dashboard').catch(() => {});
-      navigate('/dashboard');
-    } catch (error: any) {
-      console.error('🚨 Dashboard API error:', error);
-      const errorMessage = error.response?.data?.detail || error.response?.data?.message || 'Dashboard request failed';
-      console.error('❌ Dashboard API call failed:', errorMessage);
-      
-      // Still navigate to dashboard even if API fails
-      console.log('🔀 Navigating to dashboard anyway due to error...');
-      navigate('/dashboard');
-    }
-  };
 
   return (
     <main className="relative overflow-x-hidden w-full min-h-screen">
