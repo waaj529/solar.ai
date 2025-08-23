@@ -100,6 +100,67 @@ const api = axios.create({
   timeout: parseInt(import.meta.env.VITE_HTTP_TIMEOUT_MS || '45000'),
 });
 
+// Lightweight single-flight + TTL cache for GET requests
+// - Prevents duplicate concurrent GETs to the same URL
+// - Enables short-lived caching for non-polling endpoints
+const inflightGets = new Map<string, Promise<AxiosResponse<any>>>();
+const getCacheStore = new Map<string, { expiresAt: number; data: any }>();
+
+const buildGetKey = (url: string) => url; // URL already includes query params in our usages
+
+async function getWithCache<T>(
+  url: string,
+  options?: { ttlMs?: number; headers?: Record<string, string>; timeout?: number; skipCache?: boolean }
+): Promise<T> {
+  const key = buildGetKey(url);
+  const ttlMs = Number(options?.ttlMs ?? 0);
+  const skipCache = Boolean(options?.skipCache);
+  const headers = options?.headers ?? {};
+
+  // Respect Cache-Control: no-cache by skipping persistence, but still single-flight
+  const hasNoCacheHeader = /no-cache/i.test(String(headers['Cache-Control'] || ''));
+
+  // Serve from cache when allowed
+  if (!skipCache && !hasNoCacheHeader && ttlMs > 0) {
+    const hit = getCacheStore.get(key);
+    if (hit && hit.expiresAt > Date.now()) {
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.debug('[cache-hit]', url);
+      }
+      return hit.data as T;
+    }
+  }
+
+  // Single-flight: return the same promise while a request is in-flight
+  const existing = inflightGets.get(key);
+  if (existing) {
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.debug('[single-flight]', url);
+    }
+    const resp = await existing;
+    return resp.data as T;
+  }
+
+  const req = api.get(url, {
+    timeout: options?.timeout,
+    headers,
+  });
+  inflightGets.set(key, req);
+
+  try {
+    const resp = await req;
+    // Persist to cache if allowed
+    if (!skipCache && !hasNoCacheHeader && ttlMs > 0) {
+      getCacheStore.set(key, { expiresAt: Date.now() + ttlMs, data: resp.data });
+    }
+    return resp.data as T;
+  } finally {
+    inflightGets.delete(key);
+  }
+}
+
 // Token management utilities
 export const getStoredToken = (): string | null => {
   return tokenStorage.getItem('auth_token');
@@ -387,18 +448,20 @@ export const getLoadAnalysis = async (
   }
 
   // Use absolute URL; axios will ignore baseURL when provided an absolute URL
-  const response = await api.get(url, {
+  // For polling, skip TTL cache but still benefit from single-flight
+  const data = await getWithCache<unknown>(url, {
     timeout: parseInt(import.meta.env.VITE_LOAD_ANALYSIS_TIMEOUT_MS || '60000'),
     headers: {
       'Cache-Control': 'no-cache',
       Pragma: 'no-cache',
     },
+    skipCache: true,
   });
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console
-    console.debug('GET response', url, response.data);
+    console.debug('GET response', url, data);
   }
-  return response.data;
+  return data;
 };
 
 // -------------------------------
@@ -421,15 +484,15 @@ export const combineDataByDocId = async (
     console.debug('GET', url);
   }
 
-  const response = await api.get(url, {
-    // Allow more time; backend may take longer to aggregate
+  const ttlMs = parseInt(import.meta.env.VITE_YIELD_CACHE_TTL_MS || import.meta.env.VITE_HTTP_CACHE_TTL_MS || '120000');
+  const data = await getWithCache<CombineDataResponse>(url, {
     timeout: parseInt(import.meta.env.VITE_YIELD_TIMEOUT_MS || import.meta.env.VITE_HTTP_TIMEOUT_MS || '90000'),
     headers: {
-      'Cache-Control': 'no-cache',
-      Pragma: 'no-cache',
+      'Cache-Control': 'max-age=0',
     },
+    ttlMs,
   });
-  return response.data as CombineDataResponse;
+  return data as CombineDataResponse;
 };
 
 export interface WeatherResponse {
@@ -466,12 +529,13 @@ export const getWeatherByDocId = async (
     console.debug('GET', url);
   }
 
-  const response = await api.get(url, {
+  const ttlMs = parseInt(import.meta.env.VITE_WEATHER_CACHE_TTL_MS || import.meta.env.VITE_HTTP_CACHE_TTL_MS || '180000');
+  const data = await getWithCache<WeatherResponse>(url, {
     timeout: parseInt(import.meta.env.VITE_YIELD_TIMEOUT_MS || import.meta.env.VITE_HTTP_TIMEOUT_MS || '90000'),
     headers: {
-      'Cache-Control': 'no-cache',
-      Pragma: 'no-cache',
+      'Cache-Control': 'max-age=0',
     },
+    ttlMs,
   });
-  return response.data as WeatherResponse;
+  return data as WeatherResponse;
 };

@@ -177,7 +177,7 @@ export function LoadAnalysis() {
 
       {/* Summary controls */}
       <div className="flex items-center justify-end gap-2">
-        <Button size="sm" onClick={refresh} disabled={polling}>{polling ? 'Loading…' : 'Refresh'}</Button>
+        <Button size="sm" onClick={refresh} disabled={polling || loading}>{(polling || loading) ? 'Loading…' : 'Refresh'}</Button>
       </div>
 
       {/* Summary cards - responsive grid */}

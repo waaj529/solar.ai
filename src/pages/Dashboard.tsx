@@ -27,6 +27,8 @@ const Dashboard: React.FC = () => {
     if (userId && nlpId && status !== 'done' && status !== 'pending') {
       (async () => {
         try {
+          // Guard against duplicate triggers
+          localStorage.setItem(`load_triggered_${nlpId}`, 'pending');
           const res = await runLoadAnalysis({ user_id: userId, nlp_id: nlpId });
           // Persist returned load_id for GET usage
           const loadId = (res as any)?.load_id;
@@ -39,6 +41,7 @@ const Dashboard: React.FC = () => {
         } catch (e) {
           // eslint-disable-next-line no-console
           console.error('Dashboard → load analysis trigger failed:', e);
+          try { localStorage.removeItem(`load_triggered_${nlpId}`); } catch {}
         }
       })();
     }
