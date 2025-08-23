@@ -475,3 +475,336 @@ export const getWeatherByDocId = async (
   });
   return response.data as WeatherResponse;
 };
+
+// -------------------------------
+// SLD Diagram API helpers
+// -------------------------------
+
+export interface GenerateSLDParams {
+  user_id: string;
+  load_id: string;
+  system_config?: {
+    panel_count?: number;
+    inverter_count?: number;
+    battery_capacity?: number;
+    [key: string]: unknown;
+  };
+}
+
+export interface GenerateSLDResponse {
+  status?: string;
+  message?: string;
+  sld_id?: string;
+  svg_url?: string;
+  [key: string]: unknown;
+}
+
+export const generateSLD = async (
+  params: GenerateSLDParams
+): Promise<GenerateSLDResponse> => {
+  const endpoint = import.meta.env.VITE_SLD_GENERATION_ENDPOINT || '/sld/generate';
+
+  const payload: GenerateSLDParams = {
+    user_id: String(params.user_id),
+    load_id: String(params.load_id),
+    system_config: params.system_config || {},
+  };
+
+  if (import.meta.env.DEV) {
+    try {
+      JSON.stringify(payload);
+      console.debug('POST', endpoint, 'payload →', payload);
+    } catch (e) {
+      console.error('Invalid payload for generateSLD:', e);
+    }
+  }
+
+  // SLD generation can be expensive, allow longer timeout
+  const response = await api.post(endpoint, payload, {
+    timeout: parseInt(import.meta.env.VITE_SLD_GENERATION_TIMEOUT_MS || '120000'),
+  });
+  return response.data as GenerateSLDResponse;
+};
+
+export const getSLDByDocId = async (
+  sldId: string
+): Promise<unknown> => {
+  const base = import.meta.env.VITE_SLD_GET_BASE || '/sld';
+  const url = `${getApiBaseUrl()}${base}/${encodeURIComponent(String(sldId))}`;
+
+  if (import.meta.env.DEV) {
+    console.debug('GET', url);
+  }
+
+  const response = await api.get(url, {
+    timeout: parseInt(import.meta.env.VITE_SLD_TIMEOUT_MS || '60000'),
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+    },
+  });
+  return response.data;
+};
+
+// -------------------------------
+// Rooftop Layout API helpers
+// -------------------------------
+
+export interface GenerateRooftopLayoutParams {
+  user_id: string;
+  load_id: string;
+  roof_dimensions?: {
+    width_m?: number;
+    length_m?: number;
+    pitch_degrees?: number;
+    orientation_degrees?: number;
+    [key: string]: unknown;
+  };
+  panel_specs?: {
+    panel_width_mm?: number;
+    panel_height_mm?: number;
+    panel_power_w?: number;
+    [key: string]: unknown;
+  };
+}
+
+export interface GenerateRooftopLayoutResponse {
+  status?: string;
+  message?: string;
+  layout_id?: string;
+  preview_url?: string;
+  [key: string]: unknown;
+}
+
+export const generateRooftopLayout = async (
+  params: GenerateRooftopLayoutParams
+): Promise<GenerateRooftopLayoutResponse> => {
+  const endpoint = import.meta.env.VITE_ROOFTOP_LAYOUT_ENDPOINT || '/rooftop/layout';
+
+  const payload: GenerateRooftopLayoutParams = {
+    user_id: String(params.user_id),
+    load_id: String(params.load_id),
+    roof_dimensions: params.roof_dimensions || {},
+    panel_specs: params.panel_specs || {},
+  };
+
+  if (import.meta.env.DEV) {
+    try {
+      JSON.stringify(payload);
+      console.debug('POST', endpoint, 'payload →', payload);
+    } catch (e) {
+      console.error('Invalid payload for generateRooftopLayout:', e);
+    }
+  }
+
+  // Rooftop layout generation can be expensive, allow longer timeout
+  const response = await api.post(endpoint, payload, {
+    timeout: parseInt(import.meta.env.VITE_ROOFTOP_LAYOUT_TIMEOUT_MS || '120000'),
+  });
+  return response.data as GenerateRooftopLayoutResponse;
+};
+
+export const getRooftopLayoutByDocId = async (
+  layoutId: string
+): Promise<unknown> => {
+  const base = import.meta.env.VITE_ROOFTOP_LAYOUT_GET_BASE || '/rooftop/layout';
+  const url = `${getApiBaseUrl()}${base}/${encodeURIComponent(String(layoutId))}`;
+
+  if (import.meta.env.DEV) {
+    console.debug('GET', url);
+  }
+
+  const response = await api.get(url, {
+    timeout: parseInt(import.meta.env.VITE_ROOFTOP_LAYOUT_TIMEOUT_MS || '60000'),
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+    },
+  });
+  return response.data;
+};
+
+// -------------------------------
+// BOM API helpers
+// -------------------------------
+
+export interface GetBOMParams {
+  user_id: string;
+  load_id: string;
+}
+
+export interface BOMItem {
+  category: string;
+  item: string;
+  quantity: number;
+  unit: string;
+  unit_price: number;
+  total: number;
+  specifications?: Record<string, unknown>;
+}
+
+export interface BOMResponse {
+  items: BOMItem[];
+  total_material_cost: number;
+  estimated_labor_cost: number;
+  total_project_cost: number;
+  currency?: string;
+  [key: string]: unknown;
+}
+
+export const getProjectBOMByProjectId = async (
+  params: GetBOMParams
+): Promise<BOMResponse> => {
+  const endpoint = import.meta.env.VITE_BOM_ENDPOINT || '/bom/project';
+
+  const payload: GetBOMParams = {
+    user_id: String(params.user_id),
+    load_id: String(params.load_id),
+  };
+
+  if (import.meta.env.DEV) {
+    try {
+      JSON.stringify(payload);
+      console.debug('POST', endpoint, 'payload →', payload);
+    } catch (e) {
+      console.error('Invalid payload for getProjectBOMByProjectId:', e);
+    }
+  }
+
+  const response = await api.post(endpoint, payload, {
+    timeout: parseInt(import.meta.env.VITE_BOM_TIMEOUT_MS || '60000'),
+  });
+  return response.data as BOMResponse;
+};
+
+// -------------------------------
+// Project Management API helpers
+// -------------------------------
+
+export interface CreateProjectParams {
+  user_id: string;
+  name: string;
+  description?: string;
+  status?: 'Draft' | 'In Progress' | 'Completed';
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  status: 'Draft' | 'In Progress' | 'Completed';
+  created_at: string;
+  updated_at: string;
+  [key: string]: unknown;
+}
+
+export interface CreateProjectResponse {
+  project?: Project;
+  message?: string;
+  [key: string]: unknown;
+}
+
+export const createProject = async (
+  params: CreateProjectParams
+): Promise<CreateProjectResponse> => {
+  const endpoint = import.meta.env.VITE_PROJECT_CREATE_ENDPOINT || '/projects/create';
+
+  const payload: CreateProjectParams = {
+    user_id: String(params.user_id),
+    name: String(params.name || '').trim(),
+    description: params.description ? String(params.description).trim() : undefined,
+    status: params.status || 'Draft',
+  };
+
+  if (!payload.name) {
+    throw new Error('Project name is required');
+  }
+
+  if (import.meta.env.DEV) {
+    try {
+      JSON.stringify(payload);
+      console.debug('POST', endpoint, 'payload →', payload);
+    } catch (e) {
+      console.error('Invalid payload for createProject:', e);
+    }
+  }
+
+  const response = await api.post(endpoint, payload);
+  return response.data as CreateProjectResponse;
+};
+
+export interface GetMyProjectsParams {
+  user_id: string;
+}
+
+export interface GetMyProjectsResponse {
+  projects?: Project[];
+  message?: string;
+  [key: string]: unknown;
+}
+
+export const getMyProjects = async (
+  params: GetMyProjectsParams
+): Promise<GetMyProjectsResponse> => {
+  const endpoint = import.meta.env.VITE_PROJECTS_GET_ENDPOINT || '/projects/my';
+
+  const payload: GetMyProjectsParams = {
+    user_id: String(params.user_id),
+  };
+
+  if (import.meta.env.DEV) {
+    try {
+      JSON.stringify(payload);
+      console.debug('POST', endpoint, 'payload →', payload);
+    } catch (e) {
+      console.error('Invalid payload for getMyProjects:', e);
+    }
+  }
+
+  const response = await api.post(endpoint, payload);
+  return response.data as GetMyProjectsResponse;
+};
+
+export interface DeleteProjectParams {
+  user_id: string;
+  project_id: string;
+}
+
+export interface DeleteProjectResponse {
+  message?: string;
+  deleted?: boolean;
+  [key: string]: unknown;
+}
+
+export const deleteProject = async (
+  params: DeleteProjectParams
+): Promise<DeleteProjectResponse> => {
+  const endpoint = import.meta.env.VITE_PROJECT_DELETE_ENDPOINT || '/projects/delete';
+
+  const payload: DeleteProjectParams = {
+    user_id: String(params.user_id),
+    project_id: String(params.project_id),
+  };
+
+  if (import.meta.env.DEV) {
+    try {
+      JSON.stringify(payload);
+      console.debug('POST', endpoint, 'payload →', payload);
+    } catch (e) {
+      console.error('Invalid payload for deleteProject:', e);
+    }
+  }
+
+  try {
+    // Try DELETE first, fallback to POST if DELETE not supported
+    const response = await api.delete(endpoint, { data: payload });
+    return response.data as DeleteProjectResponse;
+  } catch (error: any) {
+    if (error.response?.status === 405) {
+      // Method not allowed, try POST instead
+      const response = await api.post(endpoint, payload);
+      return response.data as DeleteProjectResponse;
+    }
+    throw error;
+  }
+};

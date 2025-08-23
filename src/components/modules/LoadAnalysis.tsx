@@ -6,6 +6,7 @@ import { getLoadAnalysis } from "../../lib/api";
 import { Button } from "../../shared/ui/button";
 import { Skeleton } from "../../shared/ui/skeleton";
 import { useMobile } from "../../shared/hooks/use-mobile";
+import { useDebouncedAPI } from "../../shared/hooks/use-debounced-api";
 
 type LoadAnalysisData = {
   _id?: string;
@@ -34,6 +35,12 @@ export function LoadAnalysis() {
   const [polling, setPolling] = useState(false);
   const isMobile = useMobile();
 
+  // Use debounced API call to prevent duplicate requests
+  const { debouncedCall: debouncedGetLoadAnalysis, isExecuting } = useDebouncedAPI(
+    getLoadAnalysis,
+    { delay: 500, maxDelay: 2000 }
+  );
+
   useEffect(() => {
     const userId = localStorage.getItem('encrypted_user_id') || localStorage.getItem('anon_user_id') || '';
     const loadId = localStorage.getItem('latest_load_id') || '';
@@ -46,19 +53,23 @@ export function LoadAnalysis() {
     let attempts = 0;
 
     const fetchOnce = async () => {
+      if (cancelled) return;
+      
       setPolling(true);
       setLoading(true);
       setError(null);
+      
       try {
         const raw = await getLoadAnalysis({ user_id: userId, load_id: loadId });
         if (import.meta.env.DEV) {
-          // eslint-disable-next-line no-console
           console.log('LoadAnalysis GET raw →', raw);
         }
+        
         const normalized = (raw as any)?.data ?? (raw as any) ?? null;
         const hasContent = !!normalized && (
           !!normalized?.analysisSummary || Array.isArray(normalized?.detailedLoadList)
         );
+        
         if (!cancelled) {
           if (hasContent) {
             setData(normalized as LoadAnalysisData);
@@ -139,26 +150,33 @@ export function LoadAnalysis() {
   const userId = typeof window !== 'undefined' ? (localStorage.getItem('encrypted_user_id') || localStorage.getItem('anon_user_id') || '') : '';
   const loadId = typeof window !== 'undefined' ? (localStorage.getItem('latest_load_id') || '') : '';
 
-  const refresh = () => {
-    // Force a new polling cycle
-    if (pollTimerRef.current) window.clearTimeout(pollTimerRef.current);
-    pollTimerRef.current = null;
+  const refresh = async () => {
+    // Prevent multiple simultaneous refresh calls
+    if (loading || polling || isExecuting()) {
+      return;
+    }
+
+    // Clear any existing polling
+    if (pollTimerRef.current) {
+      window.clearTimeout(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
+
     setError(null);
     setData(null);
-    // Re-run the effect body logic by calling fetch once directly
-    // Minimal duplication: mimic one-shot fetch
-    (async () => {
-      try {
-        setLoading(true);
-        const raw = await getLoadAnalysis({ user_id: userId, load_id: loadId });
+    setLoading(true);
+
+    try {
+      const raw = await debouncedGetLoadAnalysis({ user_id: userId, load_id: loadId });
+      if (raw) {
         const normalized = (raw as any)?.data ?? (raw as any) ?? null;
         setData(normalized as LoadAnalysisData);
-      } catch (e: any) {
-        setError(e?.message || 'Failed to fetch load analysis');
-      } finally {
-        setLoading(false);
       }
-    })();
+    } catch (e: any) {
+      setError(e?.message || 'Failed to fetch load analysis');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -177,7 +195,13 @@ export function LoadAnalysis() {
 
       {/* Summary controls */}
       <div className="flex items-center justify-end gap-2">
-        <Button size="sm" onClick={refresh} disabled={polling}>{polling ? 'Loading…' : 'Refresh'}</Button>
+        <Button 
+          size="sm" 
+          onClick={refresh} 
+          disabled={loading || polling || isExecuting()}
+        >
+          {loading || polling ? 'Loading…' : 'Refresh'}
+        </Button>
       </div>
 
       {/* Summary cards - responsive grid */}
