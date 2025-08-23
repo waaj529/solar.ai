@@ -17,28 +17,53 @@ const Dashboard: React.FC = () => {
     return stored || "load-analysis";
   });
 
-  // When arriving on dashboard, attempt to run load analysis if we have
-  // a recent NLP id and a user id stored.
+  // Only run load analysis once per session, not on every dashboard visit
   useEffect(() => {
     const userId = localStorage.getItem('encrypted_user_id') || localStorage.getItem('anon_user_id') || '';
     const nlpId = localStorage.getItem('latest_nlp_id') || '';
+    
+    if (!userId || !nlpId) return;
+
+    // Check if we've already triggered load analysis in this session
+    const sessionKey = `load_analysis_session_${userId}_${nlpId}`;
+    const hasTriggeredThisSession = sessionStorage.getItem(sessionKey);
+    
+    // Check if we've already completed load analysis
     const status = localStorage.getItem(`load_triggered_${nlpId}`);
-    // Only self-trigger if Envision didn't already start it
-    if (userId && nlpId && status !== 'done' && status !== 'pending') {
+    
+    // Only trigger if:
+    // 1. We haven't triggered in this session
+    // 2. We haven't completed it before
+    // 3. It's not currently pending
+    if (!hasTriggeredThisSession && status !== 'done' && status !== 'pending') {
+      // Mark as triggered in this session
+      sessionStorage.setItem(sessionKey, 'true');
+      
       (async () => {
         try {
+          // Mark as pending to prevent duplicate calls
+          localStorage.setItem(`load_triggered_${nlpId}`, 'pending');
+          
           const res = await runLoadAnalysis({ user_id: userId, nlp_id: nlpId });
+          
           // Persist returned load_id for GET usage
           const loadId = (res as any)?.load_id;
           if (loadId) {
             localStorage.setItem('latest_load_id', String(loadId));
           }
+          
+          // Mark as completed
           localStorage.setItem(`load_triggered_${nlpId}`, 'done');
-          // eslint-disable-next-line no-console
-          console.log('Dashboard → load analysis triggered:', res);
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.error('Dashboard → load analysis trigger failed:', e);
+          
+          if (import.meta.env.DEV) {
+            console.log('Dashboard → load analysis triggered:', res);
+          }
+        } catch (e: any) {
+          // Reset status on error so user can retry
+          localStorage.removeItem(`load_triggered_${nlpId}`);
+          if (import.meta.env.DEV) {
+            console.error('Dashboard → load analysis trigger failed:', e);
+          }
         }
       })();
     }
